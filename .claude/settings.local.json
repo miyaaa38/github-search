@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/miyagawayuuko/miya-workspace/github-search/.claude)",
+      "Bash(cp -r /Users/miyagawayuuko/miya-workspace/github-repo-search/.claude/skills /Users/miyagawayuuko/miya-workspace/github-search/.claude/skills)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
