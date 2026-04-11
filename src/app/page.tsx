@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 
+import { InitialPrompt } from "@/components/common/InitialPrompt"
 import { RepositoryCardSkeletonList } from "@/components/features/search/RepositoryCardSkeleton"
 import { RepositoryListSection } from "@/components/features/search/RepositoryListSection"
 import { SearchFormContainer } from "@/components/features/search/SearchFormContainer"
@@ -16,12 +17,13 @@ export default async function SearchPage({ searchParams }: PageProps) {
   // 未検索時: タイトルと検索フォームをビューポート中央に配置
   if (!query) {
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center px-4">
+      <main className="flex min-h-svh flex-col items-center justify-center px-4">
         <div className="mb-[20vh] flex w-full max-w-2xl flex-col gap-3">
           <h1 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h1>
           <SearchFormContainer />
+          <InitialPrompt />
         </div>
-      </div>
+      </main>
     )
   }
 
