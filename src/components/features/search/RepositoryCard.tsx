@@ -14,7 +14,7 @@ export function RepositoryCard({ repository }: Props) {
     <li>
       <Link
         href={`/repositories/${owner.login}/${name}`}
-        className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="border-border bg-card hover:bg-muted focus-visible:ring-ring flex items-center gap-3 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <Image
           src={owner.avatar_url}
@@ -23,7 +23,7 @@ export function RepositoryCard({ repository }: Props) {
           height={40}
           className="rounded-full"
         />
-        <span className="text-sm font-medium text-foreground">{full_name}</span>
+        <span className="text-foreground text-sm font-medium">{full_name}</span>
       </Link>
     </li>
   )
