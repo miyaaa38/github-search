@@ -43,4 +43,57 @@ describe("SearchForm", () => {
       expect(onSearch).toHaveBeenCalledWith("react")
     })
   })
+
+  describe("バリデーション", () => {
+    it("空のキーワードでは onSearch が呼ばれない", async () => {
+      const onSearch = vi.fn()
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={onSearch} />)
+
+      await user.click(screen.getByRole("button", { name: "検索" }))
+
+      expect(onSearch).not.toHaveBeenCalled()
+    })
+
+    it("空白のみのキーワードでは onSearch が呼ばれない", async () => {
+      const onSearch = vi.fn()
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={onSearch} />)
+
+      await user.type(screen.getByRole("searchbox"), "   ")
+      await user.click(screen.getByRole("button", { name: "検索" }))
+
+      expect(onSearch).not.toHaveBeenCalled()
+    })
+
+    it("空のキーワードで送信するとエラーメッセージが表示される", async () => {
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={vi.fn()} />)
+
+      await user.click(screen.getByRole("button", { name: "検索" }))
+
+      expect(screen.getByRole("alert")).toHaveTextContent("キーワードを入力してください")
+    })
+
+    it("空白のみのキーワードで送信するとエラーメッセージが表示される", async () => {
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={vi.fn()} />)
+
+      await user.type(screen.getByRole("searchbox"), "   ")
+      await user.click(screen.getByRole("button", { name: "検索" }))
+
+      expect(screen.getByRole("alert")).toHaveTextContent("キーワードを入力してください")
+    })
+
+    it("エラー表示後にキーワードを入力するとエラーが消える", async () => {
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={vi.fn()} />)
+
+      await user.click(screen.getByRole("button", { name: "検索" }))
+      expect(screen.getByRole("alert")).toBeInTheDocument()
+
+      await user.type(screen.getByRole("searchbox"), "r")
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    })
+  })
 })
