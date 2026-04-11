@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/common/EmptyState"
+import { Pagination } from "@/components/common/Pagination"
 import { searchRepositories } from "@/lib/api/github"
 
 import { RepositoryList } from "./RepositoryList"
@@ -25,6 +26,7 @@ export async function RepositoryListSection({ query, page }: Props) {
         {data.total_count.toLocaleString()}件が見つかりました
       </p>
       <RepositoryList repositories={data.items} />
+      <Pagination totalCount={data.total_count} currentPage={page} query={query} />
     </div>
   )
 }
