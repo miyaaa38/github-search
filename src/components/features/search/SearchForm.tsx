@@ -53,13 +53,13 @@ export function SearchForm({ onSearch, isLoading = false, defaultValue = "" }: P
           type="submit"
           disabled={isLoading}
           aria-label={isLoading ? "検索中" : "検索"}
-          className="h-10 md:h-14 cursor-pointer px-5 md:px-6 transition-opacity hover:opacity-70"
+          className="h-10 cursor-pointer px-5 transition-opacity hover:opacity-70 md:h-14 md:px-6"
         >
           {isLoading ? "検索中..." : "検索"}
         </Button>
       </form>
       {error && (
-        <p id={errorId} role="alert" className="text-xs text-destructive">
+        <p id={errorId} role="alert" className="text-destructive text-xs">
           {error}
         </p>
       )}
