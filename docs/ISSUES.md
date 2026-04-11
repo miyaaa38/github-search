@@ -7,19 +7,19 @@
 
 ## Issue 一覧
 
-| # | タイトル | ラベル | 依存 | 対応する最低動作要件 |
-|---|----------|--------|------|---------------------|
-| #1 | プロジェクト初期セットアップ | `setup` | — | — |
-| #2 | 開発環境・Lint / Format 設定 | `setup` | #1 | — |
-| #3 | GitHub API 型定義・クライアント実装 | `feature`, `api` | #2 | 要件2・3 |
-| #4 | 検索フォームコンポーネント実装 | `feature`, `ui` | #3 | 要件1 |
-| #5 | リポジトリカード・一覧コンポーネント実装 | `feature`, `ui` | #4 | 要件2 |
-| #6 | 検索ページ（ルート）の組み立て・URL パラメータ対応 | `feature` | #5 | 要件1・2 |
-| #7 | ページネーション実装 | `feature`, `ui` | #6 | 要件2（加点） |
-| #8 | リポジトリ詳細ページ実装 | `feature` | #6 | 要件3・4 |
-| #9 | ローディング・エラー・空状態の UI 実装 | `feature`, `ui` | #6, #8 | — |
-| #10 | アクセシビリティ対応 | `a11y` | #9 | 品質目標 |
-| #11 | README 作成（工夫点・AI 利用レポート） | `docs` | #10 | ドキュメント要件 |
+| #   | タイトル                                           | ラベル           | 依存   | 対応する最低動作要件 |
+| --- | -------------------------------------------------- | ---------------- | ------ | -------------------- |
+| #1  | プロジェクト初期セットアップ                       | `setup`          | —      | —                    |
+| #2  | 開発環境・Lint / Format 設定                       | `setup`          | #1     | —                    |
+| #3  | GitHub API 型定義・クライアント実装                | `feature`, `api` | #2     | 要件2・3             |
+| #4  | 検索フォームコンポーネント実装                     | `feature`, `ui`  | #3     | 要件1                |
+| #5  | リポジトリカード・一覧コンポーネント実装           | `feature`, `ui`  | #4     | 要件2                |
+| #6  | 検索ページ（ルート）の組み立て・URL パラメータ対応 | `feature`        | #5     | 要件1・2             |
+| #7  | ページネーション実装                               | `feature`, `ui`  | #6     | 要件2（加点）        |
+| #8  | リポジトリ詳細ページ実装                           | `feature`        | #6     | 要件3・4             |
+| #9  | ローディング・エラー・空状態の UI 実装             | `feature`, `ui`  | #6, #8 | —                    |
+| #10 | アクセシビリティ対応                               | `a11y`           | #9     | 品質目標             |
+| #11 | README 作成（工夫点・AI 利用レポート）             | `docs`           | #10    | ドキュメント要件     |
 
 ---
 
@@ -32,6 +32,7 @@
 **目的**: 開発を始めるための Next.js プロジェクトの骨格を作る
 
 **作業内容**:
+
 ```
 - [ ] shadcn/ui を初期化（`npx shadcn@latest init`）
 - [ ] Vitest + @testing-library/react + @testing-library/user-event をインストール
@@ -44,6 +45,7 @@
 ```
 
 **完了条件**:
+
 - `npm dev` でトップページが表示される
 - `npm test` でテストランナーが起動する
 - `npm build` がエラーなく完了する
@@ -57,6 +59,7 @@
 **目的**: コード品質を統一するツールチェーンを整える
 
 **作業内容**:
+
 ```
 - [ ] ESLint 設定を Next.js 推奨設定 + import-order ルールで調整
 - [ ] Prettier を設定（`.prettierrc`）
@@ -66,6 +69,7 @@
 ```
 
 **完了条件**:
+
 - `npm lint` がエラーなく完了する
 - `npm type-check`（`tsc --noEmit`）がエラーなく完了する
 - `@/` エイリアスでインポートが解決できる
@@ -79,6 +83,7 @@
 **目的**: 型安全に GitHub API を呼び出せる基盤を作る
 
 **作業内容**:
+
 ```
 - [ ] `src/types/github.ts` に型定義を追加
       - GitHubOwner
@@ -94,6 +99,7 @@
 ```
 
 **完了条件**:
+
 - 型定義が `src/types/github.ts` に揃っている
 - `searchRepositories` / `getRepository` が正しく fetch を呼ぶ
 - テストがすべてパスする
@@ -101,19 +107,20 @@
 **ブランチ名**: `feature/3-github-api-client`
 
 **テスト観点**:
+
 ```typescript
-describe('searchRepositories', () => {
-  it('正しい URL・認証ヘッダーで fetch を呼び出す')
-  it('検索結果を GitHubSearchResponse 型で返す')
-  it('API エラー時に GitHubApiError をスローする')
-  it('Rate Limit エラー（403）時に RateLimitError をスローする')
-  it('ネットワークエラー時に Error をスローする')
+describe("searchRepositories", () => {
+  it("正しい URL・認証ヘッダーで fetch を呼び出す")
+  it("検索結果を GitHubSearchResponse 型で返す")
+  it("API エラー時に GitHubApiError をスローする")
+  it("Rate Limit エラー（403）時に RateLimitError をスローする")
+  it("ネットワークエラー時に Error をスローする")
 })
 
-describe('getRepository', () => {
-  it('正しい URL で fetch を呼び出す')
-  it('リポジトリ詳細を GitHubRepoDetail 型で返す')
-  it('404 時に RepositoryNotFoundError をスローする')
+describe("getRepository", () => {
+  it("正しい URL で fetch を呼び出す")
+  it("リポジトリ詳細を GitHubRepoDetail 型で返す")
+  it("404 時に RepositoryNotFoundError をスローする")
 })
 ```
 
@@ -124,6 +131,7 @@ describe('getRepository', () => {
 **目的**: 機能要件1「何かしらのキーワードを入力」を満たす UI を作る
 
 **作業内容**:
+
 ```
 - [ ] `src/components/features/search/SearchForm.tsx` を実装（'use client'）
       - テキスト入力・検索ボタン
@@ -135,28 +143,30 @@ describe('getRepository', () => {
 ```
 
 **完了条件**:
+
 - 入力・検索・バリデーション・ローディング状態が正しく動作する
 - テストがすべてパスする
 
 **ブランチ名**: `feature/4-search-form`
 
 **テスト観点**:
+
 ```typescript
-describe('SearchForm', () => {
-  describe('表示', () => {
-    it('テキスト入力フィールドと検索ボタンが表示される')
+describe("SearchForm", () => {
+  describe("表示", () => {
+    it("テキスト入力フィールドと検索ボタンが表示される")
     it('role="search" が付与されている')
   })
-  describe('インタラクション', () => {
-    it('キーワードを入力して検索ボタンをクリックすると onSearch が呼ばれる')
-    it('Enter キーで検索が実行される')
+  describe("インタラクション", () => {
+    it("キーワードを入力して検索ボタンをクリックすると onSearch が呼ばれる")
+    it("Enter キーで検索が実行される")
   })
-  describe('バリデーション', () => {
-    it('空のキーワードでは onSearch が呼ばれない')
-    it('空白のみのキーワードでは onSearch が呼ばれない')
+  describe("バリデーション", () => {
+    it("空のキーワードでは onSearch が呼ばれない")
+    it("空白のみのキーワードでは onSearch が呼ばれない")
   })
-  describe('ローディング状態', () => {
-    it('isLoading=true のとき検索ボタンが disabled になる')
+  describe("ローディング状態", () => {
+    it("isLoading=true のとき検索ボタンが disabled になる")
   })
 })
 ```
@@ -170,6 +180,7 @@ describe('SearchForm', () => {
 ワイヤーフレームに従い、各カードに**オーナーアイコン**と**リポジトリ名**を表示する。
 
 **作業内容**:
+
 ```
 - [ ] `src/components/features/search/RepositoryCard.tsx` を実装
       - オーナーアイコン（next/image で avatar_url を表示）
@@ -184,6 +195,7 @@ describe('SearchForm', () => {
 ```
 
 **完了条件**:
+
 - オーナーアイコン・リポジトリ名が正しく表示される
 - リンク先が `/repositories/{owner}/{repo}` になっている
 - テストがすべてパスする
@@ -191,17 +203,18 @@ describe('SearchForm', () => {
 **ブランチ名**: `feature/5-repository-card-list`
 
 **テスト観点**:
+
 ```typescript
-describe('RepositoryCard', () => {
+describe("RepositoryCard", () => {
   it('オーナーアイコンが適切な alt テキスト（"{owner} のアバター"）を持つ')
-  it('リポジトリ名（full_name）が表示される')
-  it('詳細ページへの正しいリンク（/repositories/{owner}/{repo}）が生成される')
+  it("リポジトリ名（full_name）が表示される")
+  it("詳細ページへの正しいリンク（/repositories/{owner}/{repo}）が生成される")
 })
 
-describe('RepositoryList', () => {
-  it('渡されたリポジトリ数分の RepositoryCard が表示される')
+describe("RepositoryList", () => {
+  it("渡されたリポジトリ数分の RepositoryCard が表示される")
   it('aria-label="検索結果" が付与されている')
-  it('空配列のとき何も表示されない')
+  it("空配列のとき何も表示されない")
 })
 ```
 
@@ -212,6 +225,7 @@ describe('RepositoryList', () => {
 **目的**: 検索フォームと一覧を繋ぎ、URL に状態を反映する。`RepositoryListSection` Server Component を中核にした設計にする。
 
 **作業内容**:
+
 ```
 - [ ] `src/app/page.tsx` を実装（Server Component）
       - URL クエリパラメータ `?q=` から検索キーワードを取得
@@ -234,6 +248,7 @@ describe('RepositoryList', () => {
 ```
 
 **完了条件**:
+
 - 検索すると URL が `?q={keyword}&page=1` で更新される
 - クエリ変更・ページ変更のたびにスケルトン UI が表示される（Suspense key の効果）
 - ブラウザバックで前の検索状態に戻れる
@@ -242,25 +257,26 @@ describe('RepositoryList', () => {
 **ブランチ名**: `feature/6-search-page`
 
 **テスト観点**:
+
 ```typescript
-describe('useRepositorySearch', () => {
-  it('search を呼ぶと URL の q パラメータが更新される')
-  it('search を呼ぶと page が 1 にリセットされる')
-  it('changePage を呼ぶと URL の page パラメータが更新される')
+describe("useRepositorySearch", () => {
+  it("search を呼ぶと URL の q パラメータが更新される")
+  it("search を呼ぶと page が 1 にリセットされる")
+  it("changePage を呼ぶと URL の page パラメータが更新される")
 })
 
-describe('RepositoryListSection', () => {
+describe("RepositoryListSection", () => {
   // ※ Server Component のテストは API 関数をモックして振る舞いを確認する
-  it('検索結果が 0 件のとき EmptyState が表示される')
-  it('検索結果がある場合 aria-live で件数が通知される')
+  it("検索結果が 0 件のとき EmptyState が表示される")
+  it("検索結果がある場合 aria-live で件数が通知される")
 })
 
-describe('EmptyState', () => {
-  it('検索結果が 0 件のとき適切なメッセージが表示される')
+describe("EmptyState", () => {
+  it("検索結果が 0 件のとき適切なメッセージが表示される")
 })
 
-describe('InitialPrompt', () => {
-  it('未検索状態のガイドメッセージが表示される')
+describe("InitialPrompt", () => {
+  it("未検索状態のガイドメッセージが表示される")
 })
 ```
 
@@ -271,6 +287,7 @@ describe('InitialPrompt', () => {
 **目的**: ワイヤーフレームの「ページネーションや無限スクロールの配慮を行いましょう」を満たす
 
 **作業内容**:
+
 ```
 - [ ] `src/components/common/Pagination.tsx` を実装
       - 現在ページ・前後ページへのリンク（Link コンポーネント）
@@ -282,6 +299,7 @@ describe('InitialPrompt', () => {
 ```
 
 **完了条件**:
+
 - ページ切り替えで次の結果が表示される
 - URL の `?page=` パラメータが正しく更新される
 - テストがすべてパスする
@@ -289,12 +307,13 @@ describe('InitialPrompt', () => {
 **ブランチ名**: `feature/7-pagination`
 
 **テスト観点**:
+
 ```typescript
-describe('Pagination', () => {
+describe("Pagination", () => {
   it('現在のページが aria-current="page" で示される')
-  it('1 ページ目では「前へ」ボタンが disabled になる')
-  it('最終ページでは「次へ」ボタンが disabled になる')
-  it('各ページリンクが正しい ?page= パラメータを持つ')
+  it("1 ページ目では「前へ」ボタンが disabled になる")
+  it("最終ページでは「次へ」ボタンが disabled になる")
+  it("各ページリンクが正しい ?page= パラメータを持つ")
   it('<nav aria-label="ページネーション"> が存在する')
 })
 ```
@@ -308,6 +327,7 @@ describe('Pagination', () => {
 技術スタックで指定された**6 項目**（リポジトリ名・オーナーアイコン・言語・Star 数・Watcher 数・Fork 数・Issue 数）をすべて表示する。
 
 **作業内容**:
+
 ```
 - [ ] `src/app/repositories/[owner]/[repo]/page.tsx` を実装（Server Component）
       ⚠️ Next.js 16: params は Promise<{owner: string, repo: string}> 型。必ず await すること
@@ -328,6 +348,7 @@ describe('Pagination', () => {
 ```
 
 **完了条件**:
+
 - 詳細ページに動作要件の 7 項目すべてが表示される（リポジトリ名・オーナーアイコン・言語・Star・Watcher・Fork・Issue）
 - モーダルではなくページとして実装されている（URL が変わる）
 - ページタイトルがリポジトリ名になっている
@@ -336,29 +357,30 @@ describe('Pagination', () => {
 **ブランチ名**: `feature/8-repository-detail-page`
 
 **テスト観点**:
+
 ```typescript
-describe('RepositoryDetail', () => {
-  describe('必須表示項目', () => {
-    it('リポジトリ名が表示される')
-    it('オーナーアイコンが適切な alt テキストを持つ')
-    it('プロジェクト言語が表示される')
-    it('Star 数が表示される')
-    it('Watcher 数が表示される')
-    it('Fork 数が表示される')
-    it('Issue 数が表示される')
+describe("RepositoryDetail", () => {
+  describe("必須表示項目", () => {
+    it("リポジトリ名が表示される")
+    it("オーナーアイコンが適切な alt テキストを持つ")
+    it("プロジェクト言語が表示される")
+    it("Star 数が表示される")
+    it("Watcher 数が表示される")
+    it("Fork 数が表示される")
+    it("Issue 数が表示される")
   })
-  describe('エッジケース', () => {
-    it('言語が null のとき「指定なし」または非表示になる')
+  describe("エッジケース", () => {
+    it("言語が null のとき「指定なし」または非表示になる")
   })
-  describe('リンク', () => {
-    it('GitHub リポジトリへのリンクが正しい URL を持つ')
+  describe("リンク", () => {
+    it("GitHub リポジトリへのリンクが正しい URL を持つ")
     it('外部リンクに rel="noopener noreferrer" が付与されている')
   })
 })
 
-describe('StatGrid', () => {
-  it('Star・Watcher・Fork・Issue の 4 つの統計値が表示される')
-  it('各統計値に対応するラベルが表示される')
+describe("StatGrid", () => {
+  it("Star・Watcher・Fork・Issue の 4 つの統計値が表示される")
+  it("各統計値に対応するラベルが表示される")
 })
 ```
 
@@ -369,6 +391,7 @@ describe('StatGrid', () => {
 **目的**: あらゆる状態でユーザーに適切なフィードバックを提供する（プロダクション品質）
 
 **作業内容**:
+
 ```
 - [ ] `src/app/loading.tsx` を実装（RepositoryCardSkeleton を使ったスケルトン UI）
 - [ ] `src/app/error.tsx` を実装（エラーバウンダリ・'use client' 必須）
@@ -386,6 +409,7 @@ describe('StatGrid', () => {
 ```
 
 **完了条件**:
+
 - 検索中にスケルトン UI が表示される
 - API エラー時に種類に応じたエラーメッセージが表示される
 - 404 時に適切なページが表示される
@@ -401,6 +425,7 @@ describe('StatGrid', () => {
 **目的**: UI/UX・アクセシビリティの品質向上を重視するため、品質向上ポイントを最大化する
 
 **作業内容**:
+
 ```
 - [ ] 全ページをキーボードのみで操作できるか確認・修正（Tab / Enter / Space）
 - [ ] フォーカスリングが視覚的に明確かどうか確認（Tailwind の focus-visible: を活用）
@@ -415,6 +440,7 @@ describe('StatGrid', () => {
 ```
 
 **完了条件**:
+
 - Tab キーで全インタラクティブ要素を操作できる
 - 主要なコンポーネントに適切な aria 属性が付与されている
 - 検索結果件数がスクリーンリーダーに通知される
@@ -430,6 +456,7 @@ describe('StatGrid', () => {
 > 💡 README は「コードの説明書」ではなく「**設計の意図を説明する文書**」として書く。なぜその設計を選んだか、何を検討してそれを選ばなかったか、を言語化できることが重要。
 
 **作業内容**:
+
 ```
 - [ ] `README.md` を作成
 
@@ -479,6 +506,7 @@ describe('StatGrid', () => {
 ```
 
 **完了条件**:
+
 - README に「設計の意図」が言語化されており、読み手が設計思考を理解できる
 - セットアップ手順・工夫点・AI 利用レポートがすべて文章で記載されている
 
@@ -509,6 +537,7 @@ main
 ```
 
 **PR のルール**:
+
 - PR タイトルは `feat: {Issue タイトル} (#番号)` 形式
 - PR 説明に「実装内容」「スクリーンショット（UI 変更がある場合）」「テスト結果」を記載
 - `develop` へマージ前に `npm lint && npm type-check && npm test && npm build` がパスしていること

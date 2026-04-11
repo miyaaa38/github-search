@@ -68,16 +68,16 @@ npm dev --turbopack
 
 **パフォーマンス（公式ベンチマーク）**:
 
-| 指標 | 改善値 |
-|------|--------|
-| `next dev` 起動速度 | 最大 ~87% 高速化（16.2 vs 16.1 比） |
+| 指標                  | 改善値                                       |
+| --------------------- | -------------------------------------------- |
+| `next dev` 起動速度   | 最大 ~87% 高速化（16.2 vs 16.1 比）          |
 | HTML レンダリング速度 | 25〜60% 高速化（RSC ペイロードサイズによる） |
 
 Turbopack の設定は `next.config.ts` の `turbopack` キーで行う（`webpack` の代替）：
 
 ```typescript
 // next.config.ts
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -86,8 +86,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
       },
     ],
   },
@@ -189,13 +189,13 @@ export async function generateMetadata({
 // 詳細ページは 60 秒間キャッシュ（頻繁に変わらない情報）
 const res = await fetch(url, {
   headers: getHeaders(),
-  next: { revalidate: 60 },  // Next.js の ISR 的なキャッシュ
+  next: { revalidate: 60 }, // Next.js の ISR 的なキャッシュ
 })
 
 // 検索結果はキャッシュしない（リアルタイム性が重要）
 const res = await fetch(url, {
   headers: getHeaders(),
-  cache: 'no-store',
+  cache: "no-store",
 })
 ```
 
@@ -227,6 +227,7 @@ Client Component（SearchForm 等）
 ```
 
 **Route Handler を使わない理由**:
+
 - 本アプリの要件は「SSR で検索結果を取得して表示する」だけであり、Route Handler が必要な場面（クライアントからの Ajax 更新・Webhook 受信）がない
 - Route Handler を追加すると `/app/api/search/route.ts` などの層が増え、オーバーエンジニアリングになる
 - `GITHUB_TOKEN` はサーバーサイドのみで完結するため、Route Handler 経由でも直叩きでも安全性は同じ
@@ -238,7 +239,7 @@ Client Component（SearchForm 等）
 // src/app/api/search/route.ts
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const q = searchParams.get('q') ?? ''
+  const q = searchParams.get("q") ?? ""
   const data = await searchRepositories(q, 1)
   return Response.json(data)
 }
@@ -255,16 +256,17 @@ export async function GET(request: Request) {
 
 App Router では、デフォルトがサーバーコンポーネント（RSC）。
 
-| 機能 | Server Component | Client Component |
-|------|-----------------|-----------------|
-| データフェッチ | ✅ 直接 fetch 可 | ❌ useEffect 経由 |
-| useState / useEffect | ❌ 使えない | ✅ 使える |
-| イベントハンドラ | ❌ 使えない | ✅ 使える |
-| ブラウザ API | ❌ 使えない | ✅ 使える |
-| SEO / メタデータ | ✅ `generateMetadata` 使用可 | ❌ |
-| バンドルサイズへの影響 | ✅ クライアントに送られない | ❌ バンドルに含まれる |
+| 機能                   | Server Component             | Client Component      |
+| ---------------------- | ---------------------------- | --------------------- |
+| データフェッチ         | ✅ 直接 fetch 可             | ❌ useEffect 経由     |
+| useState / useEffect   | ❌ 使えない                  | ✅ 使える             |
+| イベントハンドラ       | ❌ 使えない                  | ✅ 使える             |
+| ブラウザ API           | ❌ 使えない                  | ✅ 使える             |
+| SEO / メタデータ       | ✅ `generateMetadata` 使用可 | ❌                    |
+| バンドルサイズへの影響 | ✅ クライアントに送られない  | ❌ バンドルに含まれる |
 
 **判断フロー**:
+
 ```
 データを fetch する必要がある？
   → YES: Server Component
@@ -358,30 +360,32 @@ export default function Error({
 
 ```typescript
 // src/lib/api/github.ts
-const BASE_URL = 'https://api.github.com'
+const BASE_URL = "https://api.github.com"
 
 function getHeaders(): HeadersInit {
   const token = process.env.GITHUB_TOKEN
   return {
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }
 ```
 
-| 状況 | 検索API制限 | 一般API制限 |
-|------|-------------|-------------|
-| 未認証 | 10 req/min | 60 req/hour |
-| PAT 使用 | 30 req/min | 5,000 req/hour |
+| 状況     | 検索API制限 | 一般API制限    |
+| -------- | ----------- | -------------- |
+| 未認証   | 10 req/min  | 60 req/hour    |
+| PAT 使用 | 30 req/min  | 5,000 req/hour |
 
 **Rate Limit エラーのレスポンス**:
+
 ```json
 {
   "message": "API rate limit exceeded for ...",
   "documentation_url": "https://docs.github.com/..."
 }
 ```
+
 HTTP Status: `403` または `429`
 
 ### 5.2 検索 API のページネーション
@@ -400,14 +404,14 @@ GitHub の画像（`avatars.githubusercontent.com`）は `next.config.ts` に追
 
 ```typescript
 // next.config.ts
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
       },
     ],
   },
@@ -432,6 +436,7 @@ import Image from 'next/image'
 ### 5.4 API レスポンスの主要フィールド
 
 **検索 API レスポンス** (`GET /search/repositories`):
+
 ```typescript
 type GitHubSearchResponse = {
   total_count: number
@@ -441,17 +446,18 @@ type GitHubSearchResponse = {
 ```
 
 **リポジトリ型** (検索結果用):
+
 ```typescript
 type GitHubRepository = {
   id: number
-  name: string              // リポジトリ名
-  full_name: string         // "owner/repo"
+  name: string // リポジトリ名
+  full_name: string // "owner/repo"
   owner: GitHubOwner
-  html_url: string          // GitHub URL
+  html_url: string // GitHub URL
   description: string | null
-  language: string | null   // 主要言語（null の場合あり）
-  stargazers_count: number  // Star 数
-  forks_count: number       // Fork 数
+  language: string | null // 主要言語（null の場合あり）
+  stargazers_count: number // Star 数
+  forks_count: number // Fork 数
   open_issues_count: number // Open Issue 数
   private: boolean
   // ⚠️ watchers_count は検索 API レスポンスでは stargazers_count と同値になる場合がある
@@ -460,6 +466,7 @@ type GitHubRepository = {
 ```
 
 **詳細 API レスポンス** (`GET /repos/{owner}/{repo}`):
+
 ```typescript
 type GitHubRepoDetail = {
   id: number
@@ -469,9 +476,9 @@ type GitHubRepoDetail = {
   html_url: string
   description: string | null
   language: string | null
-  stargazers_count: number  // Star 数
-  watchers_count: number    // ← Watcher 数はここから正確に取得できる
-  forks_count: number       // Fork 数
+  stargazers_count: number // Star 数
+  watchers_count: number // ← Watcher 数はここから正確に取得できる
+  forks_count: number // Fork 数
   open_issues_count: number // Issue 数
   private: boolean
 }
@@ -480,11 +487,12 @@ type GitHubRepoDetail = {
 > ⚠️ **重要**: `watchers_count` の正確な値は詳細 API からのみ取得できる。検索結果一覧（`/search/repositories`）の `items` では `watchers_count` が `stargazers_count` と同値になることが多いため、詳細ページでは必ず `/repos/{owner}/{repo}` エンドポイントを使う。
 
 **オーナー型**:
+
 ```typescript
 type GitHubOwner = {
-  login: string        // ユーザー名
-  avatar_url: string   // アバター画像 URL
-  html_url: string     // GitHub プロフィール URL
+  login: string // ユーザー名
+  avatar_url: string // アバター画像 URL
+  html_url: string // GitHub プロフィール URL
 }
 ```
 
@@ -507,14 +515,14 @@ npx shadcn@latest add skeleton
 
 ### 6.2 使用を推奨するコンポーネント
 
-| コンポーネント | 用途 |
-|---------------|------|
-| `Button` | 検索ボタン |
-| `Input` | 検索入力フォーム |
-| `Card` | リポジトリカード |
-| `Badge` | 言語バッジ・統計値 |
-| `Skeleton` | ローディングスケルトン |
-| `Alert` | エラーメッセージ |
+| コンポーネント | 用途                   |
+| -------------- | ---------------------- |
+| `Button`       | 検索ボタン             |
+| `Input`        | 検索入力フォーム       |
+| `Card`         | リポジトリカード       |
+| `Badge`        | 言語バッジ・統計値     |
+| `Skeleton`     | ローディングスケルトン |
+| `Alert`        | エラーメッセージ       |
 
 ### 6.3 `src/components/ui/` の変更禁止
 
@@ -578,20 +586,20 @@ import { cn } from '@/lib/utils'
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from "vitest/config"
+import react from "@vitejs/plugin-react"
+import path from "path"
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ["./src/test/setup.ts"],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 })
@@ -599,14 +607,14 @@ export default defineConfig({
 
 ```typescript
 // src/test/setup.ts
-import '@testing-library/jest-dom'
+import "@testing-library/jest-dom"
 ```
 
 ### 8.2 fetch のモック方法
 
 ```typescript
 // global fetch のモック
-import { vi, beforeEach } from 'vitest'
+import { vi, beforeEach } from "vitest"
 
 const mockFetch = vi.fn()
 global.fetch = mockFetch
@@ -634,11 +642,11 @@ Server Component（async コンポーネント）のテストは Testing Library
 
 ```typescript
 // 推奨順（アクセシビリティを意識した順序）
-screen.getByRole('button', { name: '検索' })      // ① role + name（最優先）
-screen.getByLabelText('キーワード')                // ② label
-screen.getByPlaceholderText('リポジトリを検索')    // ③ placeholder
-screen.getByText('リポジトリが見つかりません')     // ④ テキスト
-screen.getByTestId('repository-card')              // ⑤ testId（最終手段）
+screen.getByRole("button", { name: "検索" }) // ① role + name（最優先）
+screen.getByLabelText("キーワード") // ② label
+screen.getByPlaceholderText("リポジトリを検索") // ③ placeholder
+screen.getByText("リポジトリが見つかりません") // ④ テキスト
+screen.getByTestId("repository-card") // ⑤ testId（最終手段）
 ```
 
 ---
@@ -664,9 +672,9 @@ export default async function Page({
 
 ```typescript
 // src/components/features/search/useRepositorySearch.ts
-'use client'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useCallback } from 'react'
+"use client"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useCallback } from "react"
 
 export function useRepositorySearch() {
   const router = useRouter()
@@ -676,8 +684,8 @@ export function useRepositorySearch() {
   const search = useCallback(
     (query: string) => {
       const params = new URLSearchParams(searchParams.toString())
-      params.set('q', query)
-      params.set('page', '1')  // 新しい検索時はページをリセット
+      params.set("q", query)
+      params.set("page", "1") // 新しい検索時はページをリセット
       router.push(`${pathname}?${params.toString()}`)
     },
     [router, pathname, searchParams]
@@ -686,7 +694,7 @@ export function useRepositorySearch() {
   const changePage = useCallback(
     (page: number) => {
       const params = new URLSearchParams(searchParams.toString())
-      params.set('page', String(page))
+      params.set("page", String(page))
       router.push(`${pathname}?${params.toString()}`)
     },
     [router, pathname, searchParams]
@@ -781,21 +789,21 @@ export class GitHubApiError extends Error {
     public readonly status: number
   ) {
     super(message)
-    this.name = 'GitHubApiError'
+    this.name = "GitHubApiError"
   }
 }
 
 export class RateLimitError extends GitHubApiError {
   constructor() {
-    super('GitHub API のレート制限に達しました。しばらく待ってから再試行してください。', 403)
-    this.name = 'RateLimitError'
+    super("GitHub API のレート制限に達しました。しばらく待ってから再試行してください。", 403)
+    this.name = "RateLimitError"
   }
 }
 
 export class RepositoryNotFoundError extends GitHubApiError {
   constructor(owner: string, repo: string) {
     super(`リポジトリ "${owner}/${repo}" が見つかりませんでした。`, 404)
-    this.name = 'RepositoryNotFoundError'
+    this.name = "RepositoryNotFoundError"
   }
 }
 ```
@@ -853,15 +861,15 @@ export function formatCount(count: number): string {
 
 ## 13. よくあるハマりポイント
 
-| 問題 | 原因 | 解決策 |
-|------|------|--------|
-| `params` / `searchParams` でエラーが出る | **Next.js 16 の破壊的変更**。同期アクセスが完全削除された | 必ず `await` する。型は `Promise<{...}>` |
-| Watcher 数が Star 数と同じ値になる | 検索 API の `watchers_count` は `stargazers_count` と同値になる | 詳細ページでは `/repos/{owner}/{repo}` から `watchers_count` を取得する |
-| 画像が表示されない | `next/image` のドメイン未設定 | `next.config.ts` に `remotePatterns`（`avatars.githubusercontent.com`）を追加 |
-| `tailwind.config.ts` が見つからない | Tailwind CSS v4 では CSS ファイルで設定 | `globals.css` に `@import "tailwindcss"` を記載 |
-| テストで `useRouter` / `useSearchParams` が使えない | App Router の hook はテスト環境で動かない | `vi.mock('next/navigation', ...)` でモックする |
-| Rate Limit エラー（403） | 未認証またはトークン未設定 | `.env.local` に `GITHUB_TOKEN` を設定 |
-| Server Component でイベントハンドラが使えない | RSC の制約 | `'use client'` をつけた別コンポーネントに切り出す |
-| `aria-live` が発話されない | 初回レンダリング時の空文字 → 文字列変化が必要 | 空文字から検索完了テキストへの変化を利用（空文字 → `"{n}件見つかりました"`） |
-| Turbopack でビルドエラーが出る | webpack プラグイン・設定が Turbopack 非対応 | `next.config.ts` の `turbopack` セクションで代替設定を探す |
-| 詳細ページで 404 が返ってくる | `[owner]` / `[repo]` セグメントに特殊文字が含まれる場合 | URL エンコード・デコードを意識して実装する |
+| 問題                                                | 原因                                                            | 解決策                                                                        |
+| --------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `params` / `searchParams` でエラーが出る            | **Next.js 16 の破壊的変更**。同期アクセスが完全削除された       | 必ず `await` する。型は `Promise<{...}>`                                      |
+| Watcher 数が Star 数と同じ値になる                  | 検索 API の `watchers_count` は `stargazers_count` と同値になる | 詳細ページでは `/repos/{owner}/{repo}` から `watchers_count` を取得する       |
+| 画像が表示されない                                  | `next/image` のドメイン未設定                                   | `next.config.ts` に `remotePatterns`（`avatars.githubusercontent.com`）を追加 |
+| `tailwind.config.ts` が見つからない                 | Tailwind CSS v4 では CSS ファイルで設定                         | `globals.css` に `@import "tailwindcss"` を記載                               |
+| テストで `useRouter` / `useSearchParams` が使えない | App Router の hook はテスト環境で動かない                       | `vi.mock('next/navigation', ...)` でモックする                                |
+| Rate Limit エラー（403）                            | 未認証またはトークン未設定                                      | `.env.local` に `GITHUB_TOKEN` を設定                                         |
+| Server Component でイベントハンドラが使えない       | RSC の制約                                                      | `'use client'` をつけた別コンポーネントに切り出す                             |
+| `aria-live` が発話されない                          | 初回レンダリング時の空文字 → 文字列変化が必要                   | 空文字から検索完了テキストへの変化を利用（空文字 → `"{n}件見つかりました"`）  |
+| Turbopack でビルドエラーが出る                      | webpack プラグイン・設定が Turbopack 非対応                     | `next.config.ts` の `turbopack` セクションで代替設定を探す                    |
+| 詳細ページで 404 が返ってくる                       | `[owner]` / `[repo]` セグメントに特殊文字が含まれる場合         | URL エンコード・デコードを意識して実装する                                    |
