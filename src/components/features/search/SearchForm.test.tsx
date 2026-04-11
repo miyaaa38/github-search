@@ -96,4 +96,12 @@ describe("SearchForm", () => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument()
     })
   })
+
+  describe("ローディング状態", () => {
+    it("isLoading=true のとき検索ボタンが disabled になる", () => {
+      render(<SearchForm onSearch={vi.fn()} isLoading={true} />)
+
+      expect(screen.getByRole("button")).toBeDisabled()
+    })
+  })
 })
