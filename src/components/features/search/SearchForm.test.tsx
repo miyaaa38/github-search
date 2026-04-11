@@ -19,4 +19,28 @@ describe("SearchForm", () => {
       expect(screen.getByRole("search")).toBeInTheDocument()
     })
   })
+
+  describe("インタラクション", () => {
+    it("キーワードを入力して検索ボタンをクリックすると onSearch が呼ばれる", async () => {
+      const onSearch = vi.fn()
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={onSearch} />)
+
+      await user.type(screen.getByRole("searchbox"), "react")
+      await user.click(screen.getByRole("button", { name: "検索" }))
+
+      expect(onSearch).toHaveBeenCalledWith("react")
+    })
+
+    it("Enter キーで検索が実行される", async () => {
+      const onSearch = vi.fn()
+      const user = userEvent.setup()
+      render(<SearchForm onSearch={onSearch} />)
+
+      await user.type(screen.getByRole("searchbox"), "react")
+      await user.keyboard("{Enter}")
+
+      expect(onSearch).toHaveBeenCalledWith("react")
+    })
+  })
 })
