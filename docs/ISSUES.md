@@ -48,7 +48,7 @@
 - `npm test` でテストランナーが起動する
 - `npm build` がエラーなく完了する
 
-**ブランチ名**: `feature/[feat]#1-setup-project`
+**ブランチ名**: `feature/1-setup-project`
 
 ---
 
@@ -70,7 +70,7 @@
 - `npm type-check`（`tsc --noEmit`）がエラーなく完了する
 - `@/` エイリアスでインポートが解決できる
 
-**ブランチ名**: `feature/[feat]#2-setup-lint`
+**ブランチ名**: `feature/2-setup-lint`
 
 ---
 
@@ -98,7 +98,7 @@
 - `searchRepositories` / `getRepository` が正しく fetch を呼ぶ
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#3-github-api-client`
+**ブランチ名**: `feature/3-github-api-client`
 
 **テスト観点**:
 ```typescript
@@ -138,7 +138,7 @@ describe('getRepository', () => {
 - 入力・検索・バリデーション・ローディング状態が正しく動作する
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#4-search-form`
+**ブランチ名**: `feature/4-search-form`
 
 **テスト観点**:
 ```typescript
@@ -188,7 +188,7 @@ describe('SearchForm', () => {
 - リンク先が `/repositories/{owner}/{repo}` になっている
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#5-repository-card-list`
+**ブランチ名**: `feature/5-repository-card-list`
 
 **テスト観点**:
 ```typescript
@@ -239,7 +239,7 @@ describe('RepositoryList', () => {
 - ブラウザバックで前の検索状態に戻れる
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#6-search-page`
+**ブランチ名**: `feature/6-search-page`
 
 **テスト観点**:
 ```typescript
@@ -286,7 +286,7 @@ describe('InitialPrompt', () => {
 - URL の `?page=` パラメータが正しく更新される
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#7-pagination`
+**ブランチ名**: `feature/7-pagination`
 
 **テスト観点**:
 ```typescript
@@ -333,7 +333,7 @@ describe('Pagination', () => {
 - ページタイトルがリポジトリ名になっている
 - テストがすべてパスする
 
-**ブランチ名**: `feature/[feat]#8-repository-detail-page`
+**ブランチ名**: `feature/8-repository-detail-page`
 
 **テスト観点**:
 ```typescript
@@ -392,7 +392,7 @@ describe('StatGrid', () => {
 - Rate Limit エラーが発生した際にわかりやすいメッセージが出る
 - 空送信時に「キーワードを入力してください」がフォーム直下に表示され、入力再開で消える
 
-**ブランチ名**: `feature/[feat]#9-loading-error-states`
+**ブランチ名**: `feature/9-loading-error-states`
 
 ---
 
@@ -419,7 +419,7 @@ describe('StatGrid', () => {
 - 主要なコンポーネントに適切な aria 属性が付与されている
 - 検索結果件数がスクリーンリーダーに通知される
 
-**ブランチ名**: `feature/[feat]#10-accessibility`
+**ブランチ名**: `feature/10-accessibility`
 
 ---
 
@@ -482,30 +482,30 @@ describe('StatGrid', () => {
 - README に「設計の意図」が言語化されており、読み手が設計思考を理解できる
 - セットアップ手順・工夫点・AI 利用レポートがすべて文章で記載されている
 
-**ブランチ名**: `docs/[docs]#11-readme`
+**ブランチ名**: `docs/11-readme`
 
 ---
 
 ## ブランチ戦略
 
-ブランチ名の命名規則: `<type>/[prefix]#<Issue番号>-<short-description>`
+ブランチ名の命名規則: `<type>/<Issue番号>-<short-description>`
 
-例: `feature/[feat]#1-setup-project`
+例: `feature/1-setup-project`
 
 ```
 main
 └── develop（統合ブランチ）
-    ├── feature/[feat]#1-setup-project
-    ├── feature/[feat]#2-setup-lint
-    ├── feature/[feat]#3-github-api-client
-    ├── feature/[feat]#4-search-form
-    ├── feature/[feat]#5-repository-card-list
-    ├── feature/[feat]#6-search-page
-    ├── feature/[feat]#7-pagination
-    ├── feature/[feat]#8-repository-detail-page
-    ├── feature/[feat]#9-loading-error-states
-    ├── feature/[feat]#10-accessibility
-    └── docs/[docs]#11-readme
+    ├── feature/1-setup-project
+    ├── feature/2-setup-lint
+    ├── feature/3-github-api-client
+    ├── feature/4-search-form
+    ├── feature/5-repository-card-list
+    ├── feature/6-search-page
+    ├── feature/7-pagination
+    ├── feature/8-repository-detail-page
+    ├── feature/9-loading-error-states
+    ├── feature/10-accessibility
+    └── docs/11-readme
 ```
 
 **PR のルール**:
@@ -515,17 +515,19 @@ main
 
 ---
 
-## コミットメッセージ規則（Conventional Commits）
+## コミットメッセージ規則
+
+コミットタイトルの形式: `[prefix] #<Issue番号> <日本語で簡潔な変更内容>`
 
 ```
-feat:     新機能追加
-fix:      バグ修正
-test:     テスト追加・修正
-refactor: リファクタリング（機能変更なし）
-style:    フォーマット等（機能変更なし）
-docs:     ドキュメント変更
-chore:    ビルド・設定変更
-a11y:     アクセシビリティ改善
+[feat]     新機能追加
+[fix]      バグ修正
+[test]     テスト追加・修正
+[refactor] リファクタリング（機能変更なし）
+[style]    フォーマット等（機能変更なし）
+[docs]     ドキュメント変更
+[chore]    ビルド・設定変更
+[a11y]     アクセシビリティ改善
 ```
 
-例: `feat: RepositoryDetail コンポーネントを実装 (#8)`
+例: `[feat] #8 RepositoryDetail コンポーネントを実装`
