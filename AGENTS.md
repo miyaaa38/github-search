@@ -13,7 +13,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## プロジェクト概要
 
 GitHub API を利用してリポジトリを検索・閲覧できる Web アプリ。
-詳細は `docs/REQUIREMENTS.md` / `docs/ISSUES.md` を参照。
+詳細は `docs/SPEC.md`（機能仕様）/ `docs/DESIGN.md`（設計方針）を参照。
 
 ```
 言語:           TypeScript（any 型禁止）
