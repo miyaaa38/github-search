@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GitHub リポジトリ検索
 
-## Getting Started
+キーワードで GitHub のリポジトリを検索し、詳細情報（Star・Watcher・Fork・Issue 数など）を確認できる Web アプリです。
 
-First, run the development server:
+- 検索結果・ページ番号は URL に反映されるため、ブラウザバック・URL 共有で状態を復元できます
+- 詳細はモーダルではなく独立したページとして実装しています（`/repositories/{owner}/{repo}`）
+
+> 機能仕様・制限事項・エラー挙動の詳細は [docs/SPEC.md](docs/SPEC.md) を参照してください。
+
+---
+
+## セットアップ
 
 ```bash
+# 1. 依存パッケージのインストール
+npm install
+
+# 2. 環境変数の設定
+cp .env.local.example .env.local
+# .env.local を開き GITHUB_TOKEN を設定（未設定でも動作、ただしレート制限が厳しくなる）
+
+# 3. 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) をブラウザで開いてください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**GITHUB_TOKEN の取得方法**: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token（スコープ不要）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test          # テスト実行
+npm run check     # lint + type-check + format:check + test を一括実行
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 技術スタック
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| 技術 | バージョン | 選定理由 |
+|---|---|---|
+| **Next.js** | 16.x (App Router) | Server Components で API キーをサーバー側に閉じ込められる。`loading.tsx` / `error.tsx` による宣言的なローディング・エラー管理 |
+| **TypeScript** | 5.x | GitHub API レスポンスの型定義でコンパイル時に誤りを検出。`any` 禁止で型安全を徹底 |
+| **Tailwind CSS** | v4 | ユーティリティファーストで UI 調整が高速。v4 は CSS ファイルで設定するため `tailwind.config.ts` 不要 |
+| **shadcn/ui** | base-nova | デザイントークンが Tailwind CSS 変数で提供され、カラーコントラストなど a11y 要件を満たした状態からスタートできる |
+| **Vitest** | 4.x | Vite と同じ変換パイプラインで Next.js との統合が簡単。Jest 互換 API で学習コストが低い |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 設計の意図
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> 詳細は [docs/DESIGN.md](docs/DESIGN.md) を参照してください。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Server / Client Component の使い分け
+
+`'use client'` は最小限のファイルにのみ付与しています。GitHub API の呼び出しと HTML 生成はサーバー側で完結させ、`GITHUB_TOKEN` がブラウザに露出しません。`page.tsx` 自体は Server Component のまま維持し、ページ全体を Client Component でラップするアンチパターンを避けました。
+
+### Route Handler を使わなかった理由
+
+Server Component から GitHub API を直接 `fetch` することで、`/api/search` のような中間層が不要になります。このアプリは「SSR で検索結果を取得して表示する」要件を満たせば十分であり、Route Handler を追加することはオーバーエンジニアリングになると判断しました。
+
+### エラー・ローディング設計
+
+カスタムエラークラス（`GitHubApiError` → `RateLimitError` / `RepositoryNotFoundError`）を継承ツリーで設計し、`instanceof` で種別を判定してユーザーに適切なメッセージを返します。`loading.tsx` / `error.tsx` は Next.js の規約ファイルとして各ルートに配置し、Suspense・Error Boundary を宣言的に管理しています。
+
+### テスト方針
+
+実装の詳細（DOM 構造・クラス名）ではなく、ユーザーが見る**振る舞い**をテストしています。`getByRole` を中心としたクエリを使い、リファクタリング耐性の高いテストを書いています。Server Component は async function として直接呼び出して `await` する方法でテストしています。
+
+### アクセシビリティ
+
+`aria-live` による検索件数通知・`aria-current="page"` によるページ表示・スキップナビゲーションリンクを実装しています。ページネーションの無効ボタンは `<button disabled>` ではなく `<span aria-disabled="true">` で実装しており、キーボードユーザーが前後ページの存在を常に認識できるようにしています（詳細は [docs/SPEC.md#アクセシビリティの設計判断](docs/SPEC.md#アクセシビリティの設計判断) を参照）。
+
+---
+
+## AI（Claude）利用レポート
+
+> 詳細は [docs/DESIGN.md#ai-利用レポート](docs/DESIGN.md#ai-利用レポート) を参照してください。
+
+Claude (claude-sonnet-4-6) を Issue 設計・コンポーネント実装・テスト実装・設計の言語化に活用しました。生成されたコードは必ず読んで意図を理解してから採用し、型設計・テスト観点・コミット内容のレビューは自分で行いました。
