@@ -5,7 +5,9 @@ import {
   GitHubApiError,
   RateLimitError,
   RepositoryNotFoundError,
+  SchemaValidationError,
   searchRepositories,
+  TimeoutError,
   UnauthorizedError,
   ValidationError,
 } from "./github"
@@ -84,10 +86,12 @@ describe("searchRepositories", () => {
     expect(result.items[0].full_name).toBe("facebook/react")
   })
 
-  it("API エラー時に GitHubApiError をスローする", async () => {
-    mockFetch.mockResolvedValueOnce(mockErrorResponse(500))
+  it("5xx エラーはリトライした上で最終的に GitHubApiError をスローする", async () => {
+    mockFetch.mockResolvedValue(mockErrorResponse(500))
 
     await expect(searchRepositories("react")).rejects.toThrow(GitHubApiError)
+    // 初回 + 2 回リトライ = 3 回
+    expect(mockFetch).toHaveBeenCalledTimes(3)
   })
 
   it("Rate Limit エラー（403）時に RateLimitError をスローする", async () => {
@@ -115,7 +119,7 @@ describe("searchRepositories", () => {
   })
 
   it("GitHub API の message を detail として保持する", async () => {
-    mockFetch.mockResolvedValueOnce(mockErrorResponse(500, "Internal server error"))
+    mockFetch.mockResolvedValue(mockErrorResponse(500, "Internal server error"))
 
     try {
       await searchRepositories("react")
@@ -125,9 +129,62 @@ describe("searchRepositories", () => {
       expect((error as GitHubApiError).detail).toBe("Internal server error")
     }
   })
+
+  it("5xx でリトライしても 200 が返ったら成功する", async () => {
+    mockFetch
+      .mockResolvedValueOnce(mockErrorResponse(503))
+      .mockResolvedValueOnce(
+        mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })
+      )
+
+    const result = await searchRepositories("react")
+    expect(result.total_count).toBe(0)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it("4xx はリトライせずに 1 回で失敗する", async () => {
+    mockFetch.mockResolvedValueOnce(mockErrorResponse(401, "Bad credentials"))
+
+    await expect(searchRepositories("react")).rejects.toThrow(UnauthorizedError)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it("タイムアウト時に TimeoutError をスローする", async () => {
+    mockFetch.mockImplementation(
+      (_url, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = init?.signal
+          signal?.addEventListener("abort", () => {
+            reject(new DOMException("aborted", "AbortError"))
+          })
+        })
+    )
+
+    vi.useFakeTimers()
+    const promise = searchRepositories("react").catch((error: unknown) => error)
+    await vi.advanceTimersByTimeAsync(10_000)
+    const error = await promise
+    vi.useRealTimers()
+
+    expect(error).toBeInstanceOf(TimeoutError)
+  })
 })
 
 // ---- getRepository ----
+
+const validRepoDetail = {
+  id: 1,
+  full_name: "facebook/react",
+  name: "react",
+  owner: { login: "facebook", avatar_url: "https://example.com/icon.png", html_url: "" },
+  description: null,
+  html_url: "https://github.com/facebook/react",
+  language: "JavaScript",
+  stargazers_count: 200000,
+  watchers_count: 1500,
+  forks_count: 40000,
+  open_issues_count: 1000,
+}
 
 describe("getRepository", () => {
   beforeEach(() => {
@@ -135,7 +192,7 @@ describe("getRepository", () => {
   })
 
   it("正しい URL で fetch を呼び出す", async () => {
-    mockFetch.mockResolvedValueOnce(mockOkResponse({ id: 1, full_name: "facebook/react" }))
+    mockFetch.mockResolvedValueOnce(mockOkResponse(validRepoDetail))
 
     await getRepository("facebook", "react")
 
@@ -172,5 +229,11 @@ describe("getRepository", () => {
     await expect(getRepository("unknown-user", "unknown-repo")).rejects.toThrow(
       RepositoryNotFoundError
     )
+  })
+
+  it("必須フィールド欠落時に SchemaValidationError をスローする", async () => {
+    mockFetch.mockResolvedValueOnce(mockOkResponse({ id: 1, full_name: "facebook/react" }))
+
+    await expect(getRepository("facebook", "react")).rejects.toThrow(SchemaValidationError)
   })
 })
