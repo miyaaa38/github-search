@@ -70,6 +70,22 @@ page.tsx（Server）
 
 `key` にクエリとページを指定することで、検索条件が変わるたびに React が Suspense を再マウントし、スケルトン UI が自動的に再表示されます。
 
+### 検索フォーム周辺の責務分離
+
+検索フォーム周辺は **プレゼンテーション層・副作用層・接続層** の 3 つに責務を分けています。
+
+| レイヤー | ファイル | 責務 | Next.js ルーター依存 |
+|---|---|---|---|
+| プレゼンテーション | `SearchForm.tsx` | 入力値・バリデーション・ローディング表示・`onSearch` コールバックの呼び出し | 無 |
+| 副作用 | `useRepositorySearch.ts` | `?q=&page=` を組み立てて `router.push` する | 有 |
+| 接続 | `SearchFormContainer.tsx` | フックから取り出した `search` を `SearchForm` に渡すだけの薄い Container | 有 |
+
+- `SearchForm` が Next.js に依存しないので、Storybook やテストで `onSearch` を差し替えやすい
+- URL 更新ロジックがフックに閉じているので、ルーティング仕様が変わっても影響範囲がフックに限定される
+- Container は Server Component（`page.tsx`）から関数を渡せないギャップを埋めるためだけに存在する（Server→Client boundary の接着剤）
+
+ページネーションはクリックで `next/link` が URL を書き換えるため、このフックから `changePage` のような関数を公開する必要はありません（YAGNI）。
+
 ---
 
 ## 責務分離と依存方向
@@ -366,7 +382,7 @@ src/
 │   │   │   ├── RepositoryCard.tsx          # 検索結果カード 1 件
 │   │   │   ├── RepositoryList.tsx          # カードの一覧
 │   │   │   ├── RepositoryCardSkeleton.tsx  # ローディング用スケルトン
-│   │   │   └── useRepositorySearch.ts      # 検索・URL パラメータ更新（'use client'）
+│   │   │   └── useRepositorySearch.ts      # 検索時の URL 更新フック（'use client'）
 │   │   └── repository/
 │   │       ├── RepositoryDetail.tsx        # 詳細コンポーネント（7 項目表示）
 │   │       ├── RepositoryBackLink.tsx      # 「← トップページへ戻る」リンク
