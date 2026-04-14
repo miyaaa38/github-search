@@ -1,4 +1,11 @@
-import type { GitHubRepoDetail, GitHubSearchResponse } from "@/types/github"
+import type { z } from "zod"
+
+import {
+  type GitHubRepoDetail,
+  gitHubRepoDetailSchema,
+  type GitHubSearchResponse,
+  gitHubSearchResponseSchema,
+} from "@/types/github"
 
 const GITHUB_API_BASE = "https://api.github.com"
 
@@ -7,7 +14,8 @@ const GITHUB_API_BASE = "https://api.github.com"
 export class GitHubApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    public readonly detail?: string
   ) {
     super(message)
     this.name = "GitHubApiError"
@@ -15,9 +23,27 @@ export class GitHubApiError extends Error {
 }
 
 export class RateLimitError extends GitHubApiError {
-  constructor() {
-    super(403, "GitHub API のレート制限に達しました。しばらく待ってから再試行してください。")
+  constructor(detail?: string) {
+    super(
+      403,
+      "GitHub API のレート制限に達しました。しばらく待ってから再試行してください。",
+      detail
+    )
     this.name = "RateLimitError"
+  }
+}
+
+export class UnauthorizedError extends GitHubApiError {
+  constructor(detail?: string) {
+    super(401, "GitHub API の認証に失敗しました。GITHUB_TOKEN の有効性を確認してください。", detail)
+    this.name = "UnauthorizedError"
+  }
+}
+
+export class ValidationError extends GitHubApiError {
+  constructor(detail?: string) {
+    super(422, "検索クエリが不正です。入力内容を見直してください。", detail)
+    this.name = "ValidationError"
   }
 }
 
@@ -26,6 +52,76 @@ export class RepositoryNotFoundError extends GitHubApiError {
     super(404, `リポジトリ ${owner}/${repo} が見つかりませんでした。`)
     this.name = "RepositoryNotFoundError"
   }
+}
+
+export class SchemaValidationError extends GitHubApiError {
+  constructor(detail: string) {
+    super(
+      200,
+      "GitHub API レスポンスの形式が想定と異なります。時間をおいて再試行してください。",
+      detail
+    )
+    this.name = "SchemaValidationError"
+  }
+}
+
+export class TimeoutError extends GitHubApiError {
+  constructor() {
+    super(408, "GitHub API への接続がタイムアウトしました。時間をおいて再試行してください。")
+    this.name = "TimeoutError"
+  }
+}
+
+// ---- 設定 ----
+
+const DEFAULT_TIMEOUT_MS = 10_000
+const MAX_RETRIES = 2
+const INITIAL_BACKOFF_MS = 200
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * 一時的な障害とみなしてリトライ対象にするステータス（5xx のみ）。
+ * 4xx はクライアント原因なのでリトライしても同じ結果になる。
+ */
+function isRetryableStatus(status: number): boolean {
+  return status >= 500 && status < 600
+}
+
+/**
+ * fetch + タイムアウト + 5xx リトライ。
+ * AbortController で DEFAULT_TIMEOUT_MS を超えた場合は TimeoutError。
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal })
+      if (!response.ok && isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+        await sleep(INITIAL_BACKOFF_MS * Math.pow(3, attempt))
+        continue
+      }
+      return response
+    } catch (error) {
+      lastError = error
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new TimeoutError()
+      }
+      if (attempt < MAX_RETRIES) {
+        await sleep(INITIAL_BACKOFF_MS * Math.pow(3, attempt))
+        continue
+      }
+      throw error
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+  // ループ最終反復で retry を continue した場合のフォールバック
+  throw lastError ?? new GitHubApiError(0, "Unknown fetch error")
 }
 
 // ---- ヘルパー ----
@@ -42,18 +138,57 @@ function buildHeaders(): HeadersInit {
   return headers
 }
 
+async function extractErrorDetail(response: Response): Promise<string | undefined> {
+  try {
+    const body: unknown = await response.json()
+    if (body && typeof body === "object" && "message" in body) {
+      const message = (body as { message: unknown }).message
+      if (typeof message === "string" && message.length > 0) {
+        return message
+      }
+    }
+  } catch {
+    // JSON 以外のレスポンスは無視
+  }
+  return undefined
+}
+
 async function handleErrorResponse(
   response: Response,
   owner?: string,
   repo?: string
 ): Promise<never> {
+  const detail = await extractErrorDetail(response)
+
+  if (response.status === 401) {
+    throw new UnauthorizedError(detail)
+  }
   if (response.status === 403) {
-    throw new RateLimitError()
+    throw new RateLimitError(detail)
   }
   if (response.status === 404 && owner && repo) {
     throw new RepositoryNotFoundError(owner, repo)
   }
-  throw new GitHubApiError(response.status, `GitHub API エラー: ${response.status}`)
+  if (response.status === 422) {
+    throw new ValidationError(detail)
+  }
+  throw new GitHubApiError(
+    response.status,
+    `GitHub API エラーが発生しました（${response.status}）。`,
+    detail
+  )
+}
+
+function parseOrThrow<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer<T> {
+  const result = schema.safeParse(data)
+  if (!result.success) {
+    const summary = result.error.issues
+      .slice(0, 3)
+      .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join(" / ")
+    throw new SchemaValidationError(summary || "unknown schema error")
+  }
+  return result.data
 }
 
 // ---- API 関数 ----
@@ -74,7 +209,7 @@ export async function searchRepositories(
   })
   const url = `${GITHUB_API_BASE}/search/repositories?${params}`
 
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: buildHeaders(),
     cache: "no-store",
   })
@@ -83,8 +218,7 @@ export async function searchRepositories(
     return handleErrorResponse(response)
   }
 
-  // GitHub API のレスポンス形式は型定義と一致することが保証されている
-  return response.json() as Promise<GitHubSearchResponse>
+  return parseOrThrow(gitHubSearchResponseSchema, await response.json())
 }
 
 /**
@@ -95,7 +229,7 @@ export async function searchRepositories(
 export async function getRepository(owner: string, repo: string): Promise<GitHubRepoDetail> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}`
 
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: buildHeaders(),
     next: { revalidate: 60 },
   })
@@ -104,6 +238,5 @@ export async function getRepository(owner: string, repo: string): Promise<GitHub
     return handleErrorResponse(response, owner, repo)
   }
 
-  // GitHub API のレスポンス形式は型定義と一致することが保証されている
-  return response.json() as Promise<GitHubRepoDetail>
+  return parseOrThrow(gitHubRepoDetailSchema, await response.json())
 }
