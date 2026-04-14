@@ -328,6 +328,24 @@ Next.js の規約ファイルを使うことで、各ページで明示的に tr
 
 ## テスト方針
 
+### テストレイヤーの切り分け
+
+このプロジェクトでは **ユニット / コンポーネント / Server Component** の 3 レイヤーで Vitest に寄せ、E2E は導入していません。「どのレイヤーで何を確認するか」を明確に切り分けることで、重複テスト・遅いテスト・壊れやすいテストを避けています。
+
+| レイヤー | 対象 | 何をテストするか | 何をテストしないか |
+|---|---|---|---|
+| **ユニット** | `src/lib/*.ts`（`format.ts` / `pagination.ts` / `github.ts` のエラー分岐） | 純関数の入出力・境界値・エラー分岐 | DOM・アクセシビリティ |
+| **コンポーネント** | `src/components/**/*.tsx`（Client） | ユーザー操作（入力・送信・クリック）と aria 属性・role ベースの取得 | 内部 state の実装詳細・CSS クラス名 |
+| **Server Component** | `RepositoryListSection` 等 | async 関数を直接 await して返る JSX を `render` し、件数表示・EmptyState 分岐を確認 | サーバー側のランタイム挙動（Next.js の `fetch` キャッシュそのもの） |
+
+E2E を導入しなかった理由は、GitHub API にレート制限があり CI で安定して叩けないこと、機能スコープが小さく主要動線がすべてアクセシビリティクエリでカバーできることです。導入する場合は Playwright + MSW 等で API をモックする前提になります。
+
+### テストしないもの（意図的に対象外）
+
+- **UI のスナップショット**: DOM 構造の変更に弱く、壊れた時に「何が悪いのか」判断できないため使用しない
+- **shadcn/ui の内部**: `src/components/ui/` は upstream から生成されるコードなのでアプリ側のテスト対象にしない
+- **Next.js のキャッシュ挙動**: `cache: 'no-store'` / `next: { revalidate }` はフレームワークの責務。アプリとしては「正しいオプションを渡しているか」までしか検証しない
+
 ### 原則：振る舞いをテストする
 
 DOM 構造・クラス名ではなく、ユーザーが見る・操作する結果を確認しています。これにより内部実装をリファクタリングしてもテストが壊れにくくなります。
@@ -354,14 +372,15 @@ render(await RepositoryListSection({ query: "react", page: 1 }))
 
 ### テスト対象と観点
 
-| 対象                                | 主な観点                                                                |
-| ----------------------------------- | ----------------------------------------------------------------------- |
-| `github.ts`（API クライアント）     | 正しい URL・ヘッダーで fetch を呼ぶか。各エラー種別を正しくスローするか |
-| `SearchForm`                        | 入力・送信・バリデーション・ローディング・エラー表示                    |
-| `RepositoryCard` / `RepositoryList` | 表示内容・リンク先・aria 属性                                           |
-| `RepositoryListSection`             | 0 件時の EmptyState・aria-live による件数通知                           |
-| `Pagination`                        | aria-current・disabled 状態・href の正確性                              |
-| `RepositoryDetail` / `StatGrid`     | 必須 7 項目の表示・言語 null 時・外部リンク属性                         |
+| 対象                                            | 主な観点                                                                                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `format.ts` / `pagination.ts`（ユーティリティ） | 純関数の入出力・境界値（NaN / 負数 / 上限ページなど）                                                                                 |
+| `github.ts`（API クライアント）                 | 正しい URL・ヘッダーで fetch を呼ぶか。各エラー種別（401/403/404/422/5xx/timeout/schema）を正しくスローするか。5xx のみリトライするか |
+| `SearchForm`                                    | 入力・送信・バリデーション・ローディング・エラー表示                                                                                  |
+| `RepositoryCard` / `RepositoryList`             | 表示内容・リンク先・aria 属性                                                                                                         |
+| `RepositoryListSection`                         | 0 件時の EmptyState・aria-live による件数通知                                                                                         |
+| `Pagination`                                    | aria-current・disabled 状態・href の正確性                                                                                            |
+| `RepositoryDetail` / `StatGrid`                 | 必須 7 項目の表示・言語 null 時・外部リンク属性                                                                                       |
 
 ---
 
