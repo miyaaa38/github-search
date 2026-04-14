@@ -5,6 +5,7 @@ import {
   GitHubApiError,
   RateLimitError,
   RepositoryNotFoundError,
+  SchemaValidationError,
   searchRepositories,
   UnauthorizedError,
   ValidationError,
@@ -129,13 +130,27 @@ describe("searchRepositories", () => {
 
 // ---- getRepository ----
 
+const validRepoDetail = {
+  id: 1,
+  full_name: "facebook/react",
+  name: "react",
+  owner: { login: "facebook", avatar_url: "https://example.com/icon.png", html_url: "" },
+  description: null,
+  html_url: "https://github.com/facebook/react",
+  language: "JavaScript",
+  stargazers_count: 200000,
+  watchers_count: 1500,
+  forks_count: 40000,
+  open_issues_count: 1000,
+}
+
 describe("getRepository", () => {
   beforeEach(() => {
     mockFetch.mockReset()
   })
 
   it("正しい URL で fetch を呼び出す", async () => {
-    mockFetch.mockResolvedValueOnce(mockOkResponse({ id: 1, full_name: "facebook/react" }))
+    mockFetch.mockResolvedValueOnce(mockOkResponse(validRepoDetail))
 
     await getRepository("facebook", "react")
 
@@ -172,5 +187,11 @@ describe("getRepository", () => {
     await expect(getRepository("unknown-user", "unknown-repo")).rejects.toThrow(
       RepositoryNotFoundError
     )
+  })
+
+  it("必須フィールド欠落時に SchemaValidationError をスローする", async () => {
+    mockFetch.mockResolvedValueOnce(mockOkResponse({ id: 1, full_name: "facebook/react" }))
+
+    await expect(getRepository("facebook", "react")).rejects.toThrow(SchemaValidationError)
   })
 })
