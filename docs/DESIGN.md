@@ -85,6 +85,62 @@ page.tsx（Server）
 
 ---
 
+## 責務分離と依存方向
+
+「どのレイヤに何を置くか」を明確にすることで、後から読む人が意図を追えるようにしています。依存方向は **下向き一方通行**（上位レイヤが下位レイヤに依存する）で、循環依存を作らないルールです。
+
+```
+┌────────────────────────────────────────────┐
+│  Page (Server Component)                   │  ← searchParams の解釈・レンダリング決定
+│  app/page.tsx, app/repositories/.../page.tsx│
+└─────────┬───────────────────────────┬──────┘
+          │                           │
+          ▼                           ▼
+┌──────────────────────┐   ┌─────────────────────────┐
+│  UI Components       │   │  API Layer              │
+│  (Server / Client)   │   │  lib/api/github.ts      │ ← fetch / エラー正規化
+│  components/**       │   └───────────┬─────────────┘
+└──────────────────────┘               │
+          ▲                            ▼
+          │                    ┌─────────────────┐
+          │                    │  GitHub API     │
+          │                    └─────────────────┘
+          │
+┌─────────┴────────────────┐
+│  Hooks (Client)          │  ← URL 書き換えのみ。API には触らない
+│  useRepositorySearch.ts  │
+└──────────────────────────┘
+```
+
+### 各レイヤの責務
+
+| レイヤ             | 置くもの                                                      | 置かないもの                                   |
+| ------------------ | ------------------------------------------------------------- | ---------------------------------------------- |
+| **Page**           | `searchParams` のバリデーション・渡し、Suspense 境界          | DOM 操作、ビジネスロジック                     |
+| **UI Components**  | 表示・整形・a11y 属性                                         | API 直接呼び出し、`window` アクセス            |
+| **API Layer**      | fetch・ヘッダー組み立て・エラー正規化（カスタムエラークラス） | UI のテキスト生成（i18n 対応時に不整合になる） |
+| **Hooks (Client)** | URL 書き換え（`router.push`）・`searchParams` 読み取り        | `fetch`、グローバルステート                    |
+
+### Client Component に置いて良いこと / 置いてはいけないこと
+
+**置いて良い**
+
+- `useState` / `useRef` / `useId` などローカル UI 状態
+- `useRouter` / `useSearchParams` による URL 操作
+- フォーム送信・キーボードイベントのハンドリング
+
+**置いてはいけない（= Server Component に置く）**
+
+- GitHub API 直接呼び出し（`GITHUB_TOKEN` がブラウザに露出する）
+- `process.env` のサーバー専用変数アクセス
+- 大量のデータ処理（クライアントバンドルを肥大化させる）
+
+### アンチパターン：`SearchPageClient` で全体ラップ
+
+`page.tsx（Server）→ SearchPageClient（Client）→ RepositoryList` の構造にすると `RepositoryList` 以下がすべてクライアントバンドルに取り込まれ、Server Component のメリットが消えます。このアプリでは採用していません。
+
+---
+
 ## API 設計
 
 ### Route Handler を使わなかった理由
