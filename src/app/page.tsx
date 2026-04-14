@@ -14,7 +14,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const { q, page, sort } = await searchParams
   const query = q?.trim() ?? ""
   const currentPage = Math.max(1, Number(page ?? 1) || 1)
-  const sortValue = sort === "stars" ? "stars" : "best-match"
+  const sortValue = sort === "stars" || sort === "updated" ? sort : "best-match"
 
   // 未検索時: タイトルと検索フォームをビューポート中央に配置
   if (!query) {

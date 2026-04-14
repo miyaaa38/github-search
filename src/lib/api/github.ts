@@ -62,7 +62,7 @@ async function handleErrorResponse(
  * リポジトリを検索する。
  * キャッシュなし（検索結果はリアルタイム性を重視）。
  */
-export type SearchSort = "best-match" | "stars"
+export type SearchSort = "best-match" | "stars" | "updated"
 
 export async function searchRepositories(
   query: string,
@@ -75,8 +75,8 @@ export async function searchRepositories(
     page: String(page),
     per_page: String(perPage),
   })
-  if (sort === "stars") {
-    params.set("sort", "stars")
+  if (sort === "stars" || sort === "updated") {
+    params.set("sort", sort)
     params.set("order", "desc")
   }
   const url = `${GITHUB_API_BASE}/search/repositories?${params}`

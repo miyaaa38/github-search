@@ -66,6 +66,18 @@ describe("searchRepositories", () => {
     expect(url).toContain("order=desc")
   })
 
+  it("sort='updated' を指定すると URL に sort=updated&order=desc が付く", async () => {
+    mockFetch.mockResolvedValueOnce(
+      mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })
+    )
+
+    await searchRepositories("react", 1, 30, "updated")
+
+    const [url] = mockFetch.mock.calls[0] as [string]
+    expect(url).toContain("sort=updated")
+    expect(url).toContain("order=desc")
+  })
+
   it("sort='best-match' のときは URL に sort パラメータが付かない", async () => {
     mockFetch.mockResolvedValueOnce(
       mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })

@@ -6,6 +6,7 @@ import { useId, useTransition } from "react"
 const OPTIONS = [
   { value: "best-match", label: "関連度順" },
   { value: "stars", label: "Stars 降順" },
+  { value: "updated", label: "更新が新しい順" },
 ] as const
 
 type SortValue = (typeof OPTIONS)[number]["value"]
