@@ -65,6 +65,65 @@ export class SchemaValidationError extends GitHubApiError {
   }
 }
 
+export class TimeoutError extends GitHubApiError {
+  constructor() {
+    super(408, "GitHub API への接続がタイムアウトしました。時間をおいて再試行してください。")
+    this.name = "TimeoutError"
+  }
+}
+
+// ---- 設定 ----
+
+const DEFAULT_TIMEOUT_MS = 10_000
+const MAX_RETRIES = 2
+const INITIAL_BACKOFF_MS = 200
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * 一時的な障害とみなしてリトライ対象にするステータス（5xx のみ）。
+ * 4xx はクライアント原因なのでリトライしても同じ結果になる。
+ */
+function isRetryableStatus(status: number): boolean {
+  return status >= 500 && status < 600
+}
+
+/**
+ * fetch + タイムアウト + 5xx リトライ。
+ * AbortController で DEFAULT_TIMEOUT_MS を超えた場合は TimeoutError。
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal })
+      if (!response.ok && isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+        await sleep(INITIAL_BACKOFF_MS * Math.pow(3, attempt))
+        continue
+      }
+      return response
+    } catch (error) {
+      lastError = error
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new TimeoutError()
+      }
+      if (attempt < MAX_RETRIES) {
+        await sleep(INITIAL_BACKOFF_MS * Math.pow(3, attempt))
+        continue
+      }
+      throw error
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+  // ループ最終反復で retry を continue した場合のフォールバック
+  throw lastError ?? new GitHubApiError(0, "Unknown fetch error")
+}
+
 // ---- ヘルパー ----
 
 function buildHeaders(): HeadersInit {
@@ -150,7 +209,7 @@ export async function searchRepositories(
   })
   const url = `${GITHUB_API_BASE}/search/repositories?${params}`
 
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: buildHeaders(),
     cache: "no-store",
   })
@@ -170,7 +229,7 @@ export async function searchRepositories(
 export async function getRepository(owner: string, repo: string): Promise<GitHubRepoDetail> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}`
 
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: buildHeaders(),
     next: { revalidate: 60 },
   })
