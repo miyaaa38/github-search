@@ -6,10 +6,12 @@ import { useCallback } from "react"
 type UseRepositorySearchReturn = {
   /** キーワード検索を実行し、URL を ?q={query}&page=1 に更新する */
   search: (query: string) => void
-  /** ページを変更し、URL の ?page= を更新する */
-  changePage: (page: number) => void
 }
 
+/**
+ * 検索フォームから URL の `?q=&page=` を更新するためのフック。
+ * ページネーションは `next/link` で完結するため、ここではページ変更は扱わない。
+ */
 export function useRepositorySearch(): UseRepositorySearchReturn {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -24,14 +26,5 @@ export function useRepositorySearch(): UseRepositorySearchReturn {
     [router, searchParams]
   )
 
-  const changePage = useCallback(
-    (page: number) => {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set("page", String(page))
-      router.push(`/?${params.toString()}`)
-    },
-    [router, searchParams]
-  )
-
-  return { search, changePage }
+  return { search }
 }

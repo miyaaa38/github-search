@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import { buildPageRange } from "@/lib/pagination"
+
 const PER_PAGE = 30
 /** GitHub API の検索結果上限（1,000件 = 最大 34 ページ） */
 const MAX_TOTAL = 1000
@@ -9,28 +11,6 @@ type Props = {
   currentPage: number
   query: string
   sort?: string
-}
-
-/** 表示するページ番号の配列を生成する（現在ページ周辺 ± 2 + 先頭・末尾） */
-function buildPageRange(current: number, total: number): (number | "...")[] {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1)
-  }
-
-  const pages = new Set<number>([1, total, current])
-  for (let i = Math.max(2, current - 2); i <= Math.min(total - 1, current + 2); i++) {
-    pages.add(i)
-  }
-
-  const sorted = [...pages].sort((a, b) => a - b)
-  const result: (number | "...")[] = []
-
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push("...")
-    result.push(sorted[i])
-  }
-
-  return result
 }
 
 function buildHref(query: string, page: number, sort?: string): string {

@@ -1,3 +1,5 @@
+import { formatCount } from "@/lib/format"
+
 type StatItem = {
   label: string
   value: number
@@ -8,12 +10,6 @@ type Props = {
   watchers: number
   forks: number
   issues: number
-}
-
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
-  return n.toLocaleString()
 }
 
 function StatCell({ label, value }: StatItem) {

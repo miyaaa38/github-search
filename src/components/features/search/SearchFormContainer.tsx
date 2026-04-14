@@ -8,8 +8,13 @@ type Props = {
 }
 
 /**
- * SearchForm に URL 更新ロジック（useRepositorySearch）を接続する薄いラッパー。
- * page.tsx（Server Component）から関数を渡せないため、このレイヤーを挟む。
+ * Server Component（`page.tsx`）と `SearchForm`（プレゼンテーション層）を
+ * 接続するための Container。責務は以下の 1 点のみ。
+ *
+ *   - `useRepositorySearch` から取り出した `search` を `SearchForm` に渡す
+ *
+ * `SearchForm` は `onSearch` を受け取るだけで Next.js ルーターに依存しないため、
+ * Storybook やテストで副作用を差し替えやすい構造を保っている。
  */
 export function SearchFormContainer({ defaultValue }: Props) {
   const { search } = useRepositorySearch()
