@@ -6,6 +6,8 @@ import {
   RateLimitError,
   RepositoryNotFoundError,
   searchRepositories,
+  UnauthorizedError,
+  ValidationError,
 } from "./github"
 
 // fetch をモック化（GitHub API への実リクエストを発生させない）
@@ -22,11 +24,11 @@ function mockOkResponse(body: unknown) {
 }
 
 /** エラーレスポンスを返すモックを生成するヘルパー */
-function mockErrorResponse(status: number) {
+function mockErrorResponse(status: number, message = "error") {
   return {
     ok: false,
     status,
-    json: () => Promise.resolve({ message: "error" }),
+    json: () => Promise.resolve({ message }),
   }
 }
 
@@ -98,6 +100,30 @@ describe("searchRepositories", () => {
     mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"))
 
     await expect(searchRepositories("react")).rejects.toThrow(TypeError)
+  })
+
+  it("401 時に UnauthorizedError をスローする", async () => {
+    mockFetch.mockResolvedValueOnce(mockErrorResponse(401, "Bad credentials"))
+
+    await expect(searchRepositories("react")).rejects.toThrow(UnauthorizedError)
+  })
+
+  it("422 時に ValidationError をスローする", async () => {
+    mockFetch.mockResolvedValueOnce(mockErrorResponse(422, "Validation Failed"))
+
+    await expect(searchRepositories("react")).rejects.toThrow(ValidationError)
+  })
+
+  it("GitHub API の message を detail として保持する", async () => {
+    mockFetch.mockResolvedValueOnce(mockErrorResponse(500, "Internal server error"))
+
+    try {
+      await searchRepositories("react")
+      expect.fail("エラーがスローされるはず")
+    } catch (error) {
+      expect(error).toBeInstanceOf(GitHubApiError)
+      expect((error as GitHubApiError).detail).toBe("Internal server error")
+    }
   })
 })
 

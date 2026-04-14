@@ -7,7 +7,8 @@ const GITHUB_API_BASE = "https://api.github.com"
 export class GitHubApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    public readonly detail?: string
   ) {
     super(message)
     this.name = "GitHubApiError"
@@ -15,9 +16,27 @@ export class GitHubApiError extends Error {
 }
 
 export class RateLimitError extends GitHubApiError {
-  constructor() {
-    super(403, "GitHub API のレート制限に達しました。しばらく待ってから再試行してください。")
+  constructor(detail?: string) {
+    super(
+      403,
+      "GitHub API のレート制限に達しました。しばらく待ってから再試行してください。",
+      detail
+    )
     this.name = "RateLimitError"
+  }
+}
+
+export class UnauthorizedError extends GitHubApiError {
+  constructor(detail?: string) {
+    super(401, "GitHub API の認証に失敗しました。GITHUB_TOKEN の有効性を確認してください。", detail)
+    this.name = "UnauthorizedError"
+  }
+}
+
+export class ValidationError extends GitHubApiError {
+  constructor(detail?: string) {
+    super(422, "検索クエリが不正です。入力内容を見直してください。", detail)
+    this.name = "ValidationError"
   }
 }
 
@@ -42,18 +61,45 @@ function buildHeaders(): HeadersInit {
   return headers
 }
 
+async function extractErrorDetail(response: Response): Promise<string | undefined> {
+  try {
+    const body: unknown = await response.json()
+    if (body && typeof body === "object" && "message" in body) {
+      const message = (body as { message: unknown }).message
+      if (typeof message === "string" && message.length > 0) {
+        return message
+      }
+    }
+  } catch {
+    // JSON 以外のレスポンスは無視
+  }
+  return undefined
+}
+
 async function handleErrorResponse(
   response: Response,
   owner?: string,
   repo?: string
 ): Promise<never> {
+  const detail = await extractErrorDetail(response)
+
+  if (response.status === 401) {
+    throw new UnauthorizedError(detail)
+  }
   if (response.status === 403) {
-    throw new RateLimitError()
+    throw new RateLimitError(detail)
   }
   if (response.status === 404 && owner && repo) {
     throw new RepositoryNotFoundError(owner, repo)
   }
-  throw new GitHubApiError(response.status, `GitHub API エラー: ${response.status}`)
+  if (response.status === 422) {
+    throw new ValidationError(detail)
+  }
+  throw new GitHubApiError(
+    response.status,
+    `GitHub API エラーが発生しました（${response.status}）。`,
+    detail
+  )
 }
 
 // ---- API 関数 ----
