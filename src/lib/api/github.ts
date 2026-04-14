@@ -1,4 +1,11 @@
-import type { GitHubRepoDetail, GitHubSearchResponse } from "@/types/github"
+import type { z } from "zod"
+
+import {
+  type GitHubRepoDetail,
+  gitHubRepoDetailSchema,
+  type GitHubSearchResponse,
+  gitHubSearchResponseSchema,
+} from "@/types/github"
 
 const GITHUB_API_BASE = "https://api.github.com"
 
@@ -44,6 +51,17 @@ export class RepositoryNotFoundError extends GitHubApiError {
   constructor(owner: string, repo: string) {
     super(404, `リポジトリ ${owner}/${repo} が見つかりませんでした。`)
     this.name = "RepositoryNotFoundError"
+  }
+}
+
+export class SchemaValidationError extends GitHubApiError {
+  constructor(detail: string) {
+    super(
+      200,
+      "GitHub API レスポンスの形式が想定と異なります。時間をおいて再試行してください。",
+      detail
+    )
+    this.name = "SchemaValidationError"
   }
 }
 
@@ -102,6 +120,18 @@ async function handleErrorResponse(
   )
 }
 
+function parseOrThrow<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer<T> {
+  const result = schema.safeParse(data)
+  if (!result.success) {
+    const summary = result.error.issues
+      .slice(0, 3)
+      .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join(" / ")
+    throw new SchemaValidationError(summary || "unknown schema error")
+  }
+  return result.data
+}
+
 // ---- API 関数 ----
 
 /**
@@ -129,8 +159,7 @@ export async function searchRepositories(
     return handleErrorResponse(response)
   }
 
-  // GitHub API のレスポンス形式は型定義と一致することが保証されている
-  return response.json() as Promise<GitHubSearchResponse>
+  return parseOrThrow(gitHubSearchResponseSchema, await response.json())
 }
 
 /**
@@ -150,6 +179,5 @@ export async function getRepository(owner: string, repo: string): Promise<GitHub
     return handleErrorResponse(response, owner, repo)
   }
 
-  // GitHub API のレスポンス形式は型定義と一致することが保証されている
-  return response.json() as Promise<GitHubRepoDetail>
+  return parseOrThrow(gitHubRepoDetailSchema, await response.json())
 }
