@@ -1,19 +1,20 @@
 import { EmptyState } from "@/components/common/EmptyState"
 import { Pagination } from "@/components/common/Pagination"
-import { searchRepositories } from "@/lib/api/github"
+import { searchRepositories, type SearchSort } from "@/lib/api/github"
 
 import { RepositoryList } from "./RepositoryList"
 
 type Props = {
   query: string
   page: number
+  sort?: SearchSort
 }
 
 /**
  * Server Component — GitHub API を呼び出してリポジトリ一覧を表示する。
  */
-export async function RepositoryListSection({ query, page }: Props) {
-  const data = await searchRepositories(query, page)
+export async function RepositoryListSection({ query, page, sort = "best-match" }: Props) {
+  const data = await searchRepositories(query, page, 30, sort)
 
   if (data.items.length === 0) {
     return <EmptyState query={query} />
@@ -26,7 +27,7 @@ export async function RepositoryListSection({ query, page }: Props) {
         {data.total_count.toLocaleString()}件が見つかりました
       </p>
       <RepositoryList repositories={data.items} />
-      <Pagination totalCount={data.total_count} currentPage={page} query={query} />
+      <Pagination totalCount={data.total_count} currentPage={page} query={query} sort={sort} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ type Props = {
   totalCount: number
   currentPage: number
   query: string
+  sort?: string
 }
 
 /** 表示するページ番号の配列を生成する（現在ページ周辺 ± 2 + 先頭・末尾） */
@@ -32,11 +33,13 @@ function buildPageRange(current: number, total: number): (number | "...")[] {
   return result
 }
 
-function buildHref(query: string, page: number): string {
-  return `/?q=${encodeURIComponent(query)}&page=${page}`
+function buildHref(query: string, page: number, sort?: string): string {
+  const params = new URLSearchParams({ q: query, page: String(page) })
+  if (sort && sort !== "best-match") params.set("sort", sort)
+  return `/?${params.toString()}`
 }
 
-export function Pagination({ totalCount, currentPage, query }: Props) {
+export function Pagination({ totalCount, currentPage, query, sort }: Props) {
   const clampedTotal = Math.min(totalCount, MAX_TOTAL)
   const totalPages = Math.ceil(clampedTotal / PER_PAGE)
 
@@ -51,7 +54,7 @@ export function Pagination({ totalCount, currentPage, query }: Props) {
       {/* 前へ */}
       {hasPrev ? (
         <Link
-          href={buildHref(query, currentPage - 1)}
+          href={buildHref(query, currentPage - 1, sort)}
           aria-label="前のページへ"
           className="border-border text-foreground hover:bg-muted focus-visible:ring-ring flex h-9 items-center rounded-lg border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
         >
@@ -79,7 +82,7 @@ export function Pagination({ totalCount, currentPage, query }: Props) {
         ) : (
           <Link
             key={item}
-            href={buildHref(query, item)}
+            href={buildHref(query, item, sort)}
             aria-label={`${item} ページ目`}
             aria-current={item === currentPage ? "page" : undefined}
             className={`focus-visible:ring-ring flex h-9 w-9 items-center justify-center rounded-lg text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none ${
@@ -96,7 +99,7 @@ export function Pagination({ totalCount, currentPage, query }: Props) {
       {/* 次へ */}
       {hasNext ? (
         <Link
-          href={buildHref(query, currentPage + 1)}
+          href={buildHref(query, currentPage + 1, sort)}
           aria-label="次のページへ"
           className="border-border text-foreground hover:bg-muted focus-visible:ring-ring flex h-9 items-center rounded-lg border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
         >

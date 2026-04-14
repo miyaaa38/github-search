@@ -54,6 +54,29 @@ describe("searchRepositories", () => {
     )
   })
 
+  it("sort='stars' を指定すると URL に sort=stars&order=desc が付く", async () => {
+    mockFetch.mockResolvedValueOnce(
+      mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })
+    )
+
+    await searchRepositories("react", 1, 30, "stars")
+
+    const [url] = mockFetch.mock.calls[0] as [string]
+    expect(url).toContain("sort=stars")
+    expect(url).toContain("order=desc")
+  })
+
+  it("sort='best-match' のときは URL に sort パラメータが付かない", async () => {
+    mockFetch.mockResolvedValueOnce(
+      mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })
+    )
+
+    await searchRepositories("react", 1, 30, "best-match")
+
+    const [url] = mockFetch.mock.calls[0] as [string]
+    expect(url).not.toContain("sort=")
+  })
+
   it("検索結果を GitHubSearchResponse 型で返す", async () => {
     const mockData = {
       total_count: 1,
