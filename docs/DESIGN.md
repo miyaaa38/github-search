@@ -124,11 +124,19 @@ app/
 ├── error.tsx       → Error Boundary として自動適用（'use client' 必須）
 ├── not-found.tsx   → 存在しない URL へのアクセス時に表示
 └── repositories/[owner]/[repo]/
-    ├── loading.tsx → 詳細ページ固有のスケルトン UI
-    └── error.tsx   → RepositoryNotFoundError を含む詳細ページ固有のエラー処理
+    ├── loading.tsx   → 詳細ページ固有のスケルトン UI
+    ├── not-found.tsx → `RepositoryNotFoundError` を受けた notFound() の着地点
+    └── error.tsx     → 5xx・レート制限・タイムアウトなど再試行可能なエラーの処理
 ```
 
 Next.js の規約ファイルを使うことで、各ページで明示的に try/catch や Suspense を書く必要がなくなります。
+
+### 404 は `notFound()` → `not-found.tsx` に流す
+
+詳細ページ（`/repositories/[owner]/[repo]`）で `getRepository` が `RepositoryNotFoundError` を投げた場合のみ `notFound()` を呼び、Next.js の `not-found.tsx` にルーティングします。それ以外のエラーは `error.tsx`（Error Boundary）で「再試行」導線と共に表示します。
+
+- **なぜ分けるか**: 404 は「このリソースは存在しない」ことが確定しているため再試行しても意味がなく、`reset()` ボタンを出すのは UX として不適切です。対してレート制限・タイムアウト・5xx は時間を置けば回復し得るので再試行導線を残します。
+- **副次効果**: 404 レスポンス（HTTP ステータス 404）が `not-found.tsx` から返り、検索エンジンやクローラーに正しく「存在しない」ことを伝えられます（`error.tsx` だと 500 扱い）。
 
 ---
 
@@ -198,7 +206,8 @@ src/
 │   ├── not-found.tsx                       # 404 ページ
 │   └── repositories/[owner]/[repo]/
 │       ├── page.tsx                        # 詳細ページ（Server Component・generateMetadata）
-│       ├── error.tsx                       # 詳細ページエラーバウンダリ
+│       ├── error.tsx                       # 詳細ページエラーバウンダリ（再試行可能エラー用）
+│       ├── not-found.tsx                   # RepositoryNotFoundError の着地点
 │       └── loading.tsx                     # 詳細ページローディング
 ├── components/
 │   ├── ui/                                 # shadcn/ui 自動生成（編集禁止）
