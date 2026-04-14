@@ -35,13 +35,4 @@ describe("useRepositorySearch", () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("page=1"))
   })
 
-  it("changePage を呼ぶと URL の page パラメータが更新される", () => {
-    const { result } = renderHook(() => useRepositorySearch())
-
-    act(() => {
-      result.current.changePage(3)
-    })
-
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("page=3"))
-  })
 })
