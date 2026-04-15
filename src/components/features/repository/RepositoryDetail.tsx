@@ -32,9 +32,9 @@ export function RepositoryDetail({ repo }: Props) {
           height={64}
           className="rounded-full"
         />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-muted-foreground text-sm">{owner.login}</span>
-          <h1 className="text-foreground text-2xl font-bold">{full_name}</h1>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-muted-foreground text-sm break-all">{owner.login}</span>
+          <h1 className="text-foreground text-2xl font-bold break-all">{full_name}</h1>
         </div>
       </div>
 

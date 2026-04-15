@@ -4,15 +4,17 @@ import { InitialPrompt } from "@/components/common/InitialPrompt"
 import { RepositoryCardSkeletonList } from "@/components/features/search/RepositoryCardSkeleton"
 import { RepositoryListSection } from "@/components/features/search/RepositoryListSection"
 import { SearchFormContainer } from "@/components/features/search/SearchFormContainer"
+import { SortToggle } from "@/components/features/search/SortToggle"
 
 type PageProps = {
-  searchParams: Promise<{ q?: string; page?: string }>
+  searchParams: Promise<{ q?: string; page?: string; sort?: string }>
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {
-  const { q, page } = await searchParams
+  const { q, page, sort } = await searchParams
   const query = q?.trim() ?? ""
   const currentPage = Math.max(1, Number(page ?? 1) || 1)
+  const sortValue = sort === "stars" || sort === "updated" ? sort : "best-match"
 
   // 未検索時: タイトルと検索フォームをビューポート中央に配置
   if (!query) {
@@ -33,14 +35,17 @@ export default async function SearchPage({ searchParams }: PageProps) {
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex flex-col gap-3 py-6 backdrop-blur">
         <h1 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h1>
         <SearchFormContainer defaultValue={query} />
+        <div className="flex justify-end">
+          <SortToggle value={sortValue} />
+        </div>
       </header>
 
       <main className="py-4">
         <Suspense
-          key={`${query}-${currentPage}`}
+          key={`${query}-${currentPage}-${sortValue}`}
           fallback={<RepositoryCardSkeletonList count={10} />}
         >
-          <RepositoryListSection query={query} page={currentPage} />
+          <RepositoryListSection query={query} page={currentPage} sort={sortValue} />
         </Suspense>
       </main>
     </div>

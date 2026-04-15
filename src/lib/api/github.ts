@@ -197,16 +197,23 @@ function parseOrThrow<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer
  * リポジトリを検索する。
  * キャッシュなし（検索結果はリアルタイム性を重視）。
  */
+export type SearchSort = "best-match" | "stars" | "updated"
+
 export async function searchRepositories(
   query: string,
   page: number = 1,
-  perPage: number = 30
+  perPage: number = 30,
+  sort: SearchSort = "best-match"
 ): Promise<GitHubSearchResponse> {
   const params = new URLSearchParams({
     q: query,
     page: String(page),
     per_page: String(perPage),
   })
+  if (sort === "stars" || sort === "updated") {
+    params.set("sort", sort)
+    params.set("order", "desc")
+  }
   const url = `${GITHUB_API_BASE}/search/repositories?${params}`
 
   const response = await fetchWithRetry(url, {
