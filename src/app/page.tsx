@@ -4,7 +4,7 @@ import { InitialPrompt } from "@/components/common/InitialPrompt"
 import { RepositoryCardSkeletonList } from "@/components/features/search/RepositoryCardSkeleton"
 import { RepositoryListSection } from "@/components/features/search/RepositoryListSection"
 import { SearchFormContainer } from "@/components/features/search/SearchFormContainer"
-import { SortSelect } from "@/components/features/search/SortSelect"
+import { SortToggle } from "@/components/features/search/SortToggle"
 
 type PageProps = {
   searchParams: Promise<{ q?: string; page?: string; sort?: string }>
@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <h1 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h1>
         <SearchFormContainer defaultValue={query} />
         <div className="flex justify-end">
-          <SortSelect value={sortValue} />
+          <SortToggle value={sortValue} />
         </div>
       </header>
 

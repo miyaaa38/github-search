@@ -82,7 +82,7 @@ describe("searchRepositories", () => {
     expect(url).toContain("order=desc")
   })
 
-  it("sort='best-match' のときは URL に sort パラメータが付かない", async () => {
+  it("sort='best-match'（デフォルト）のときは URL に sort パラメータが付かない", async () => {
     mockFetch.mockResolvedValueOnce(
       mockOkResponse({ total_count: 0, incomplete_results: false, items: [] })
     )
