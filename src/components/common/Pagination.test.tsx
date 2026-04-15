@@ -33,8 +33,12 @@ describe("Pagination", () => {
   it('現在のページが aria-current="page" で示される', () => {
     render(<Pagination totalCount={300} currentPage={3} query="react" />)
 
-    const currentLink = screen.getByRole("link", { name: "3 ページ目" })
-    expect(currentLink).toHaveAttribute("aria-current", "page")
+    // モバイル用 / デスクトップ用の 2 系統を同時レンダリングしているため複数一致する
+    const currentLinks = screen.getAllByRole("link", { name: "3 ページ目" })
+    expect(currentLinks.length).toBeGreaterThan(0)
+    for (const link of currentLinks) {
+      expect(link).toHaveAttribute("aria-current", "page")
+    }
   })
 
   it("1 ページ目では「前へ」が disabled になる", () => {
