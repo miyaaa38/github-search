@@ -1,9 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect } from "react"
 
 import { ErrorMessage } from "@/components/common/ErrorMessage"
+import { RepositoryBackLink } from "@/components/features/repository/RepositoryBackLink"
 
 type Props = {
   error: Error & { digest?: string }
@@ -18,13 +18,7 @@ export default function Error({ error, reset }: Props) {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <div className="mb-6">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <span aria-hidden="true">←</span>
-          トップページへ戻る
-        </Link>
+        <RepositoryBackLink />
       </div>
 
       <div className="flex flex-col gap-4">
