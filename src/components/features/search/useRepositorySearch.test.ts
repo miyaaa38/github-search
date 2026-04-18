@@ -35,4 +35,9 @@ describe("useRepositorySearch", () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("page=1"))
   })
 
+  it("isPending の初期値が false である", () => {
+    const { result } = renderHook(() => useRepositorySearch())
+
+    expect(result.current.isPending).toBe(false)
+  })
 })

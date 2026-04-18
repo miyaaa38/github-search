@@ -1,11 +1,12 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useTransition } from "react"
 
 type UseRepositorySearchReturn = {
   /** キーワード検索を実行し、URL を ?q={query}&page=1 に更新する */
   search: (query: string) => void
+  isPending: boolean
 }
 
 /**
@@ -15,16 +16,19 @@ type UseRepositorySearchReturn = {
 export function useRepositorySearch(): UseRepositorySearchReturn {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
 
   const search = useCallback(
     (query: string) => {
       const params = new URLSearchParams(searchParams.toString())
       params.set("q", query)
       params.set("page", "1")
-      router.push(`/?${params.toString()}`)
+      startTransition(() => {
+        router.push(`/?${params.toString()}`)
+      })
     },
-    [router, searchParams]
+    [router, searchParams, startTransition]
   )
 
-  return { search }
+  return { search, isPending }
 }

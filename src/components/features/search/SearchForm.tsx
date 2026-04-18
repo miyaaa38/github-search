@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useId, useState } from "react"
+import { useId, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +16,7 @@ export function SearchForm({ onSearch, isLoading = false, defaultValue = "" }: P
   const [error, setError] = useState("")
   const errorId = useId()
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     const trimmed = value.trim()
     if (!trimmed) {

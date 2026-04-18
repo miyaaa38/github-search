@@ -104,4 +104,22 @@ describe("SearchForm", () => {
       expect(screen.getByRole("button")).toBeDisabled()
     })
   })
+
+  describe("defaultValue", () => {
+    it("defaultValue が入力欄に反映される", () => {
+      render(<SearchForm onSearch={vi.fn()} defaultValue="react" />)
+
+      expect(screen.getByRole("searchbox")).toHaveValue("react")
+    })
+
+    it("defaultValue を変更すると入力値もリセットされる（key によるリマウント）", () => {
+      const { rerender } = render(<SearchForm key="react" onSearch={vi.fn()} defaultValue="react" />)
+
+      expect(screen.getByRole("searchbox")).toHaveValue("react")
+
+      rerender(<SearchForm key="vue" onSearch={vi.fn()} defaultValue="vue" />)
+
+      expect(screen.getByRole("searchbox")).toHaveValue("vue")
+    })
+  })
 })
