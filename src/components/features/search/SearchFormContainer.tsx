@@ -18,5 +18,5 @@ type Props = {
  */
 export function SearchFormContainer({ defaultValue }: Props) {
   const { search } = useRepositorySearch()
-  return <SearchForm onSearch={search} defaultValue={defaultValue} />
+  return <SearchForm key={defaultValue} onSearch={search} defaultValue={defaultValue} />
 }
