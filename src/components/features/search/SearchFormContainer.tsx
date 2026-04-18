@@ -17,6 +17,13 @@ type Props = {
  * Storybook やテストで副作用を差し替えやすい構造を保っている。
  */
 export function SearchFormContainer({ defaultValue }: Props) {
-  const { search } = useRepositorySearch()
-  return <SearchForm key={defaultValue} onSearch={search} defaultValue={defaultValue} />
+  const { search, isPending } = useRepositorySearch()
+  return (
+    <SearchForm
+      key={defaultValue}
+      onSearch={search}
+      isLoading={isPending}
+      defaultValue={defaultValue}
+    />
+  )
 }
