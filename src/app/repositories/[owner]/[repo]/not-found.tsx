@@ -1,16 +1,10 @@
-import Link from "next/link"
+import { RepositoryBackLink } from "@/components/features/repository/RepositoryBackLink"
 
 export default function NotFound() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <div className="mb-6">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <span aria-hidden="true">←</span>
-          トップページへ戻る
-        </Link>
+        <RepositoryBackLink />
       </div>
 
       <div
