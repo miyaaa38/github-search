@@ -86,4 +86,17 @@ describe("RepositoryCard", () => {
 
     expect(screen.getByRole("link")).toHaveAttribute("href", "/repositories/facebook/react")
   })
+
+  it("backQueryString を渡すと詳細ページリンクに検索条件が付与される", () => {
+    render(
+      <ul>
+        <RepositoryCard repository={mockRepository} backQueryString="q=react&page=2" />
+      </ul>
+    )
+
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/repositories/facebook/react?q=react&page=2"
+    )
+  })
 })
