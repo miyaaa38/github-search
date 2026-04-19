@@ -19,8 +19,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
   // 未検索時: タイトルと検索フォームをビューポート中央に配置
   if (!query) {
     return (
-      <main className="flex min-h-svh flex-col items-center justify-center px-4">
+      <main className="flex min-h-[calc(100svh-3.5rem)] flex-col items-center justify-center px-4">
         <div className="mb-[20vh] flex w-full max-w-2xl flex-col gap-3">
+          <h2 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h2>
           <SearchFormContainer />
           <InitialPrompt />
         </div>
@@ -31,7 +32,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   // 検索後: タイトルと検索フォームを上部に固定してリストを表示
   return (
     <div className="mx-auto w-full max-w-2xl px-4">
-      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex flex-col gap-3 py-6 backdrop-blur">
+      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-14 z-10 flex flex-col gap-3 py-6 backdrop-blur">
         <SearchFormContainer defaultValue={query} />
         <div className="flex justify-end">
           <SortToggle value={sortValue} />

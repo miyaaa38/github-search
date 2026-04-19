@@ -38,12 +38,12 @@ export default function RootLayout({
         >
           メインコンテンツへスキップ
         </a>
-        <header className="border-border border-b">
-          <div className="mx-auto w-full max-w-2xl px-4 py-3">
-            <Link href="/" className="text-foreground text-lg font-bold hover:opacity-80">
+        <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border sticky top-0 z-20 h-14 border-b px-4 py-3 backdrop-blur">
+          <h1 className="w-fit text-lg font-bold">
+            <Link href="/" className="text-foreground hover:opacity-80">
               GitHub Search
             </Link>
-          </div>
+          </h1>
         </header>
         <div id="main-content">{children}</div>
       </body>
