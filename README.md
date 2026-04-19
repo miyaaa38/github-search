@@ -1,5 +1,7 @@
 # GitHub リポジトリ検索
 
+**Demo**: https://github-search-59mkl30t8-miyaaa38s-projects.vercel.app/
+
 キーワードで GitHub のリポジトリを検索し、詳細情報（Star・Watcher・Fork・Issue 数など）を確認できる Web アプリです。
 
 - 検索結果・ページ番号・ソート条件は URL に反映されるため、ブラウザバック・URL 共有で状態を復元できます
