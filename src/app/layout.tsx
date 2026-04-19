@@ -1,16 +1,19 @@
 import "./globals.css"
 
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Noto_Sans_JP } from "next/font/google"
+import Link from "next/link"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
+  display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -27,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ja" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="ja" className={`${inter.variable} ${notoSansJP.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main-content"
@@ -35,6 +38,13 @@ export default function RootLayout({
         >
           メインコンテンツへスキップ
         </a>
+        <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border sticky top-0 z-20 h-14 border-b px-4 py-3 backdrop-blur">
+          <h1 className="w-fit text-lg font-bold">
+            <Link href="/" className="text-foreground hover:opacity-80">
+              GitHub Search
+            </Link>
+          </h1>
+        </header>
         <div id="main-content">{children}</div>
       </body>
     </html>
