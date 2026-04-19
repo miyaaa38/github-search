@@ -2,6 +2,7 @@ import "./globals.css"
 
 import type { Metadata } from "next"
 import { Inter, Noto_Sans_JP } from "next/font/google"
+import Link from "next/link"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,6 +38,13 @@ export default function RootLayout({
         >
           メインコンテンツへスキップ
         </a>
+        <header className="border-border border-b">
+          <div className="mx-auto w-full max-w-2xl px-4 py-3">
+            <Link href="/" className="text-foreground text-lg font-bold hover:opacity-80">
+              GitHub Search
+            </Link>
+          </div>
+        </header>
         <div id="main-content">{children}</div>
       </body>
     </html>

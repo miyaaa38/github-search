@@ -21,7 +21,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
     return (
       <main className="flex min-h-svh flex-col items-center justify-center px-4">
         <div className="mb-[20vh] flex w-full max-w-2xl flex-col gap-3">
-          <h1 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h1>
           <SearchFormContainer />
           <InitialPrompt />
         </div>
@@ -33,7 +32,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-2xl px-4">
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex flex-col gap-3 py-6 backdrop-blur">
-        <h1 className="text-foreground text-2xl font-bold">GitHub リポジトリ検索</h1>
         <SearchFormContainer defaultValue={query} />
         <div className="flex justify-end">
           <SortToggle value={sortValue} />
